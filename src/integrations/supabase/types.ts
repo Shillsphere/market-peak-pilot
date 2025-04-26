@@ -37,6 +37,7 @@ export type Database = {
           id: string
           is_approved: boolean
           organization_id: string | null
+          role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
         Insert: {
@@ -45,6 +46,7 @@ export type Database = {
           id: string
           is_approved?: boolean
           organization_id?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Update: {
@@ -53,6 +55,7 @@ export type Database = {
           id?: string
           is_approved?: boolean
           organization_id?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Relationships: [
@@ -97,6 +100,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_user_application: {
+        Args: { application_id: string; org_id?: string }
+        Returns: Json
+      }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       is_user_approved: {
         Args: { user_id: string }
         Returns: boolean
@@ -104,6 +115,7 @@ export type Database = {
     }
     Enums: {
       application_status: "pending" | "approved" | "rejected"
+      user_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -220,6 +232,7 @@ export const Constants = {
   public: {
     Enums: {
       application_status: ["pending", "approved", "rejected"],
+      user_role: ["admin", "user"],
     },
   },
 } as const
