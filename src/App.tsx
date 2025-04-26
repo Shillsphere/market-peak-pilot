@@ -5,11 +5,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
+import { BusinessProvider } from "@/providers/BusinessProvider";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
 import { supabase } from "@/lib/supabase";
+import { DashboardHome } from "./pages/dashboard/DashboardHome";
+import { ContentPage } from "./pages/dashboard/ContentPage";
+import { ProfilePage } from "./pages/dashboard/ProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -54,7 +58,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/sign-in" replace />;
   }
 
-  return <>{children}</>;
+  return <BusinessProvider>{children}</BusinessProvider>;
 };
 
 const App = () => (
@@ -68,14 +72,48 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
+            
+            {/* Dashboard routes */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
+                <DashboardHome />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/content" element={
+              <ProtectedRoute>
+                <ContentPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/profile" element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/inbox" element={
+              <ProtectedRoute>
                 <div className="p-8">
-                  <h1 className="text-3xl font-bold">Dashboard</h1>
-                  <p className="mt-4">Welcome to your dashboard. This is a placeholder.</p>
+                  <h1 className="text-3xl font-bold">Inbox</h1>
+                  <p className="mt-4">This feature will be available in future updates.</p>
                 </div>
               </ProtectedRoute>
             } />
+            <Route path="/dashboard/analytics" element={
+              <ProtectedRoute>
+                <div className="p-8">
+                  <h1 className="text-3xl font-bold">Analytics</h1>
+                  <p className="mt-4">This feature will be available in future updates.</p>
+                </div>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/settings" element={
+              <ProtectedRoute>
+                <div className="p-8">
+                  <h1 className="text-3xl font-bold">Settings</h1>
+                  <p className="mt-4">This feature will be available in future updates.</p>
+                </div>
+              </ProtectedRoute>
+            } />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </TooltipProvider>
