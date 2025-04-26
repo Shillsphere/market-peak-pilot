@@ -1,69 +1,59 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
-import AdminDashboard from "./pages/AdminDashboard";
 import { supabase } from "@/lib/supabase";
 
 const queryClient = new QueryClient();
 
-// Protected route component that requires admin role
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+// Protected route component that requires approval
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isApproved, setIsApproved] = useState<boolean>(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const checkAdmin = async () => {
+    const checkApproval = async () => {
       if (!user) {
-        setIsAdmin(false);
+        setIsApproved(false);
         setChecking(false);
         return;
       }
 
       try {
-        const { data, error } = await supabase.rpc('is_admin', {
-          user_id: user.id
-        });
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('is_approved')
+          .eq('id', user.id)
+          .single();
         
         if (error) throw error;
-        setIsAdmin(data);
+        setIsApproved(profile?.is_approved || false);
       } catch (error) {
-        console.error('Error checking admin status:', error);
-        setIsAdmin(false);
+        console.error('Error checking approval status:', error);
+        setIsApproved(false);
       }
       setChecking(false);
     };
 
-    checkAdmin();
+    checkApproval();
   }, [user]);
 
   if (loading || checking) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  if (!user || !isAdmin) {
+  if (!user || !isApproved) {
     return <Navigate to="/sign-in" replace />;
   }
 
-  return <>{children}</>;
-};
-
-// Regular protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  
-  if (!user) return <Navigate to="/sign-in" replace />;
-  
   return <>{children}</>;
 };
 
@@ -85,11 +75,6 @@ const App = () => (
                   <p className="mt-4">Welcome to your dashboard. This is a placeholder.</p>
                 </div>
               </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
             } />
             <Route path="*" element={<NotFound />} />
           </Routes>
