@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Building } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -22,21 +22,26 @@ const SignUp = () => {
     setLoading(true);
 
     try {
+      // First create the application
+      const { error: applicationError } = await supabase
+        .from('user_applications')
+        .insert([
+          { email, business_name: businessName }
+        ]);
+
+      if (applicationError) throw applicationError;
+
+      // Then sign up the user
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            full_name: name,
-          },
-        },
       });
 
       if (error) throw error;
 
       toast({
-        title: "Account created!",
-        description: "Please check your email to confirm your account.",
+        title: "Application submitted successfully",
+        description: "Please wait for admin approval before signing in.",
       });
 
       navigate("/sign-in");
@@ -63,32 +68,32 @@ const SignUp = () => {
             />
           </Link>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+            Apply for an Account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Or{" "}
+            Already have an account?{" "}
             <Link to="/sign-in" className="font-medium text-primary hover:text-primary-dark">
-              sign in to your account
+              Sign in here
             </Link>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSignUp}>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="business-name">Business Name</Label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+                  <Building className="h-5 w-5 text-gray-400" />
                 </div>
                 <Input
-                  id="name"
-                  name="name"
+                  id="business-name"
+                  name="business-name"
                   type="text"
                   required
                   className="pl-10"
-                  placeholder="Enter your full name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your business name"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
                 />
               </div>
             </div>
@@ -142,7 +147,7 @@ const SignUp = () => {
           </div>
 
           <Button className="w-full" type="submit" disabled={loading}>
-            {loading ? "Creating account..." : "Create account"}
+            {loading ? "Submitting application..." : "Submit application"}
           </Button>
         </form>
       </div>

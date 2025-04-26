@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,21 @@ const SignIn = () => {
     setLoading(true);
 
     try {
+      // Check if user is approved
+      const { data: applications } = await supabase
+        .from('user_applications')
+        .select('status')
+        .eq('email', email)
+        .single();
+
+      if (!applications) {
+        throw new Error('No application found for this email');
+      }
+
+      if (applications.status !== 'approved') {
+        throw new Error('Your application is still pending approval');
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
