@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,21 +21,39 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      // Check if user is approved
-      const { data: applications } = await supabase
+      // First check if application is approved
+      const { data: applications, error: applicationError } = await supabase
         .from('user_applications')
         .select('status')
         .eq('email', email)
         .single();
 
-      if (!applications) {
-        throw new Error('No application found for this email');
+      if (applicationError && applicationError.code !== 'PGRST116') {
+        // Error other than "no rows returned"
+        throw applicationError;
       }
 
-      if (applications.status !== 'approved') {
+      // If no application found or application is not approved
+      if (!applications) {
+        // Check if user is already approved in profiles directly
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_approved')
+          .eq('email', email)
+          .single();
+
+        if (profileError && profileError.code !== 'PGRST116') {
+          throw profileError;
+        }
+
+        if (!profile || !profile.is_approved) {
+          throw new Error('No approved application found for this email');
+        }
+      } else if (applications.status !== 'approved') {
         throw new Error('Your application is still pending approval');
       }
 
+      // Proceed with sign in
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
