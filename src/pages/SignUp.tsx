@@ -22,7 +22,7 @@ const SignUp = () => {
     setLoading(true);
 
     try {
-      // First create the application
+      // First create the application without using auth
       const { error: applicationError } = await supabase
         .from('user_applications')
         .insert([
