@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface Template {
   id: string;
@@ -70,35 +71,46 @@ export function ContentPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>(undefined);
   const [additionalPrompt, setAdditionalPrompt] = useState('');
+  const [contentType, setContentType] = useState<'template' | 'custom'>('template');
+  const [customDescription, setCustomDescription] = useState('');
 
   const handleGenerate = () => {
     if (!currentBusiness) {
       toast.error("Please select a business first.");
       return;
     }
-    if (!selectedTemplateId) {
-        toast.error("Please select a template.");
-        return;
+    
+    if (contentType === 'template' && !selectedTemplateId) {
+      toast.error("Please select a template.");
+      return;
+    }
+    
+    if (contentType === 'custom' && !customDescription.trim()) {
+      toast.error("Please provide a custom description.");
+      return;
     }
 
-    const selectedTemplate = templates.find(t => t.id === selectedTemplateId);
-    if (!selectedTemplate) {
-        toast.error("Selected template not found.");
-        return;
+    let payload: any = {};
+    
+    if (contentType === 'template') {
+      payload.templateId = selectedTemplateId;
+      if (additionalPrompt.trim()) {
+        payload.customPrompt = additionalPrompt.trim();
+      }
+    } else {
+      // For custom description, combine main description and any additional details
+      let fullPrompt = customDescription.trim();
+      if (additionalPrompt.trim()) {
+        fullPrompt += " " + additionalPrompt.trim();
+      }
+      payload.customPrompt = fullPrompt;
     }
 
-    let finalPrompt = selectedTemplate.prompt;
-    if (additionalPrompt.trim()) {
-        finalPrompt += `\n\nAdditional details: ${additionalPrompt.trim()}`;
-    }
-
-    console.log("Starting generation with prompt:", finalPrompt);
+    console.log("Calling generate mutation with payload:", payload);
     toast.info("Starting content generation...");
 
     genPost.mutate(
-      {
-        prompt: finalPrompt
-      },
+      payload,
       {
         onSuccess: (data) => {
           toast.success("Content generation started! It will appear below shortly.");
@@ -106,6 +118,7 @@ export function ContentPage() {
           setIsModalOpen(false);
           setSelectedTemplateId(undefined);
           setAdditionalPrompt('');
+          setCustomDescription('');
         },
         onError: (error) => {
           toast.error(`Failed to start generation: ${error.message}`);
@@ -125,11 +138,11 @@ export function ContentPage() {
       });
   };
 
-  const isLoading = businessLoading || postsLoading;
+  const isLoading = businessLoading || postsLoading || templatesLoading;
 
   return (
     <DashboardLayout>
-      {isLoading ? (
+      {isLoading && !posts.length ? (
         <LoadingState message="Loading content dashboard..." />
       ) : (
         <div className="flex flex-col gap-6 max-w-6xl mx-auto">
@@ -144,7 +157,7 @@ export function ContentPage() {
             <div className="mt-6 p-8 border border-dashed border-gray-700 rounded-xl bg-[#0D0D0D] flex flex-col items-center justify-center text-center">
               <h2 className="text-xl font-medium mb-4 text-white">Ready to create content?</h2>
               <p className="text-gray-400 mb-6 max-w-lg">
-                Select a template and optionally add details to generate engaging social media posts and images.
+                Select a template or use a custom description to generate engaging social media posts and images.
               </p>
               <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogTrigger asChild>
@@ -161,38 +174,74 @@ export function ContentPage() {
                   <DialogHeader>
                     <DialogTitle className="text-white">Generate New Content</DialogTitle>
                     <DialogDescription>
-                      Select a template and provide any additional details for the AI.
+                      Select a template or use a custom description for AI-generated content.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="template" className="text-right text-gray-300">
-                        Template
+                      <Label className="text-right text-gray-300">
+                        Content Type
                       </Label>
-                       <Select
+                      <RadioGroup 
+                        className="col-span-3 flex space-x-4"
+                        value={contentType} 
+                        onValueChange={(value) => setContentType(value as 'template' | 'custom')}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="template" id="template-option" />
+                          <Label htmlFor="template-option" className="text-white">Use template</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="custom" id="custom-option" />
+                          <Label htmlFor="custom-option" className="text-white">Custom description</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    {contentType === 'template' ? (
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="template" className="text-right text-gray-300">
+                          Template
+                        </Label>
+                        <Select
                           value={selectedTemplateId}
                           onValueChange={setSelectedTemplateId}
                           disabled={templatesLoading}
-                       >
-                        <SelectTrigger id="template" className="col-span-3 bg-[#0D0D0D] border-gray-600 text-white">
-                          <SelectValue placeholder="Select a template..." />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#111111] border-gray-600 text-white">
-                          {templatesLoading ? (
+                        >
+                          <SelectTrigger id="template" className="col-span-3 bg-[#0D0D0D] border-gray-600 text-white">
+                            <SelectValue placeholder="Select a template..." />
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#111111] border-gray-600 text-white">
+                            {templatesLoading ? (
                               <SelectItem value="loading" disabled>Loading...</SelectItem>
-                          ) : (
+                            ) : (
                               templates.map(template => (
-                                  <SelectItem key={template.id} value={template.id}>
-                                      {template.name}
-                                  </SelectItem>
+                                <SelectItem key={template.id} value={template.id}>
+                                  {template.name}
+                                </SelectItem>
                               ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="customDescription" className="text-right text-gray-300 pt-2">
+                          Description
+                        </Label>
+                        <Textarea
+                          id="customDescription"
+                          className="col-span-3 bg-[#0D0D0D] border-gray-600 text-white min-h-[100px]"
+                          placeholder="Describe the content you want to generate, e.g., 'A promotional post about our new summer collection targeting young adults'"
+                          value={customDescription}
+                          onChange={(e) => setCustomDescription(e.target.value)}
+                        />
+                      </div>
+                    )}
+                    
                     <div className="grid grid-cols-4 items-start gap-4">
                       <Label htmlFor="additionalPrompt" className="text-right text-gray-300 pt-2">
-                        Details
+                        Additional Details
                         <span className="block text-xs text-gray-500">(Optional)</span>
                       </Label>
                       <Textarea
@@ -208,7 +257,11 @@ export function ContentPage() {
                     <Button
                       type="button"
                       onClick={handleGenerate}
-                      disabled={genPost.isPending || !selectedTemplateId || templatesLoading}
+                      disabled={
+                        genPost.isPending || 
+                        (contentType === 'template' && !selectedTemplateId) || 
+                        (contentType === 'custom' && !customDescription.trim())
+                      }
                       className="bg-primary hover:bg-primary-dark"
                     >
                       {genPost.isPending ? (
@@ -236,7 +289,7 @@ export function ContentPage() {
               [...posts]
                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                .map((p: Post) => (
-                <div key={p.id} className={`border border-gray-800 rounded-lg p-4 bg-[#0d0d0d] flex gap-4 items-start ${p.status === 'generating' ? 'opacity-60' : ''}`}>
+                <div key={p.id} className={`border border-gray-800 rounded-lg p-4 bg-[#0d0d0d] flex gap-4 items-start ${p.status === 'generating' ? 'opacity-60 animate-pulse' : ''}`}>
                   <div className="flex-shrink-0 w-32 h-32 bg-gray-800 rounded flex items-center justify-center overflow-hidden">
                      {p.status === 'generating' && (
                         <div className="text-center p-2">
@@ -248,7 +301,7 @@ export function ContentPage() {
                         <img
                           className="w-full h-full object-cover"
                           src={`${supabaseUrl}/storage/v1/object/public/${p.generated_images.url}`}
-                          alt={`Generated image for: ${p.caption?.substring(0, 30)}...`}
+                          alt={`Generated image for post ${p.id}`}
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
                             const errorIconHtml = `
@@ -256,7 +309,8 @@ export function ContentPage() {
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alert-triangle h-8 w-8 text-red-500 mx-auto mb-1"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                                     <p class="text-red-400 text-xs italic">Load Error</p>
                                 </div>`;
-                            (e.target as HTMLImageElement).parentElement!.innerHTML = errorIconHtml;
+                            const parent = (e.target as HTMLImageElement).parentElement;
+                            if (parent) parent.innerHTML = errorIconHtml;
                            }}
                         />
                      )}
@@ -274,25 +328,35 @@ export function ContentPage() {
                      )}
                   </div>
                   <div className="flex-grow">
-                     <p className="text-white font-medium mb-2 leading-snug">
-                          {p.caption || <span className="italic text-gray-500">Generating caption...</span>}
-                     </p>
-                     <div className="flex justify-between items-center">
+                     {p.status === 'ready' && (
+                        <p className="text-white font-medium mb-2 leading-snug">
+                             {p.caption || <span className="italic text-gray-500">Caption missing</span>}
+                        </p>
+                     )}
+                     {p.status === 'generating' && (
+                        <p className="text-gray-500 italic mb-2 leading-snug">Generating caption...</p>
+                     )}
+                     {p.status === 'failed' && (
+                        <p className="text-red-500 italic mb-2 leading-snug">Generation failed.</p>
+                     )}
+                     <div className="flex justify-between items-center mt-auto">
                          <p className="text-gray-500 text-xs">
-                           {p.status === 'generating' ? 'Generating now' : `Generated: ${new Date(p.created_at).toLocaleString()}`}
-                         </p>
-                         {p.caption && p.status !== 'generating' && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-gray-400 hover:text-white h-7 px-2"
-                                onClick={() => handleCopyToClipboard(p.caption)}
-                                title="Copy caption"
-                            >
-                               <ClipboardCopy className="h-4 w-4" />
-                            </Button>
-                          )}
-                      </div>
+                            {p.status === 'generating' ? 'Generating now...' :
+                             p.status === 'failed' ? `Failed on ${new Date(p.created_at).toLocaleString()}` :
+                             `Generated: ${new Date(p.created_at).toLocaleString()}`}
+                          </p>
+                          {p.caption && p.status === 'ready' && (
+                             <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 className="text-gray-400 hover:text-white h-7 px-2"
+                                 onClick={() => handleCopyToClipboard(p.caption)}
+                                 title="Copy caption"
+                             >
+                                <ClipboardCopy className="h-4 w-4" />
+                             </Button>
+                           )}
+                       </div>
                   </div>
                 </div>
               ))
