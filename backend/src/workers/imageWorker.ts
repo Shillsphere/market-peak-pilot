@@ -6,6 +6,9 @@ import { openai } from '../lib/openai.js';   // Added .js back
 
 console.log('Worker starting...');
 
+// Log the REDIS_URL before attempting to use it for the worker connection
+console.log('[Worker] REDIS_URL from env:', process.env.REDIS_URL);
+
 type JobData = { postId: string; businessId: string; prompt: string };
 
 // TODO: It looks like process.env.REDIS_URL! might be incorrect.

@@ -8,7 +8,8 @@ import { z } from 'zod';
 // Define interfaces for request and response bodies for clarity
 interface CreatePostRequestBody {
   businessId: string;
-  prompt: string;
+  templateId?: string;   // NEW
+  customPrompt?: string; // optional
 }
 
 interface CreatePostResponseBody {
@@ -31,17 +32,17 @@ interface PostForBackend {
 
 type GetPostsResponseBody = PostForBackend[];
 
-// Interface for the POST request body
-interface PostRequestBody {
-  businessId: string;
-  prompt: string; // Added prompt field
-}
+// Interface for the POST request body - REMOVED (replaced by CreatePostRequestBody)
+// interface PostRequestBody {
+//   businessId: string;
+//   prompt: string; // Added prompt field
+// }
 
-// Validation middleware using zod (example)
-const postRequestSchema = z.object({
-  businessId: z.string().uuid(),
-  prompt: z.string().min(10), // Added validation for prompt
-});
+// Validation middleware using zod (example) - REMOVED, using custom validator for now
+// const postRequestSchema = z.object({
+//   businessId: z.string().uuid(),
+//   prompt: z.string().min(10), // Added validation for prompt
+// });
 
 // Basic error handling middleware
 const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
@@ -49,16 +50,61 @@ const errorHandler = (err: Error, req: Request, res: Response, next: NextFunctio
   res.status(500).send('Something broke!');
 };
 
-// Input validation middleware - Typed with RequestHandler
+// Input validation middleware - Updated for templateId or customPrompt
 const validatePostRequest: RequestHandler<{}, {}, CreatePostRequestBody> = (req, res, next) => {
-  const { businessId, prompt } = req.body;
-  if (!businessId || typeof businessId !== 'string' || !prompt || typeof prompt !== 'string') {
-    // Send response without returning it
-    res.status(400).json({ error: 'Missing or invalid businessId or prompt' });
-    return; // Add explicit return to stop execution after sending response
+  const { businessId, templateId, customPrompt } = req.body;
+  if (!businessId || typeof businessId !== 'string') {
+    res.status(400).json({ error: 'Missing or invalid businessId' });
+    return; // Explicit return after sending response
   }
-  // Call next without returning it
+  if (!templateId && !customPrompt) {
+    res.status(400).json({ error: 'Either templateId or customPrompt is required' });
+    return; // Explicit return after sending response
+  }
+  if (templateId && typeof templateId !== 'string') {
+    res.status(400).json({ error: 'Invalid templateId' });
+    return; // Explicit return after sending response
+  }
+  if (customPrompt && typeof customPrompt !== 'string') {
+     res.status(400).json({ error: 'Invalid customPrompt' });
+     return; // Explicit return after sending response
+  }
+  if (customPrompt && customPrompt.length < 10) {
+      res.status(400).json({ error: 'Custom prompt must be at least 10 characters' });
+      return; // Explicit return after sending response
+  }
   next();
+};
+
+// Helper function to determine the prompt
+const buildPrompt = async (body: CreatePostRequestBody): Promise<string> => {
+  if (body.customPrompt) {
+      console.log("Using custom prompt");
+      return body.customPrompt;
+  }
+
+  if (body.templateId) {
+    console.log(`Fetching template prompt for ID: ${body.templateId}`);
+    const { data, error } = await supabase
+      .from('templates')
+      .select('prompt_stub')
+      .eq('id', body.templateId)
+      .single();
+
+    if (error) {
+        console.error("Error fetching template:", error);
+        throw new Error(`Template not found or Supabase error: ${error.message}`);
+    }
+    if (!data) {
+        throw new Error('Template not found');
+    }
+    console.log("Using template prompt stub:", data.prompt_stub);
+    // TODO: Optional variable replacement can be added here if needed
+    return data.prompt_stub;
+  }
+
+  // This should be unreachable due to validation middleware, but acts as a safeguard
+  throw new Error('Either templateId or customPrompt required');
 };
 
 
@@ -72,26 +118,53 @@ app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
-// Extracted and typed handler for POST /content/text
-const createPostHandler = async (req: Request, res: Response, next: NextFunction) => {
+// Extracted and typed handler for POST /content/text - Modified
+const createPostHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // req.body is already validated by middleware if you use express-validator or zod middleware
-    const { businessId, prompt } = req.body as PostRequestBody; // Destructure prompt
+    const { businessId, templateId, customPrompt } = req.body as CreatePostRequestBody;
+    const userId = 'placeholder-user-id'; // FIXME: Need actual user ID from auth context
 
-    console.log(`Received POST /content/text for business ${businessId} with prompt: "${prompt}"`);
+    console.log(`Received POST /content/text for business ${businessId}`);
+    if (templateId) console.log(` -> templateId: ${templateId}`);
+    if (customPrompt) console.log(` -> customPrompt: "${customPrompt.substring(0, 50)}..."`);
 
-    // 1. Generate caption using OpenAI (gpt-4o-mini)
+    // 0. Check and decrement credits before proceeding
+    console.log(`Checking credits for business ${businessId}...`);
+    const { data: creditOk, error: creditErr } = await supabase.rpc(
+      'check_and_decrement_credits',
+      { bid: businessId }
+    );
+
+    if (creditErr) {
+      console.error('Credit check RPC error:', creditErr);
+      res.status(500).json({ error: 'Credit check failed due to an internal error.' });
+      return; // Explicit return after sending response
+    }
+    if (!creditOk) {
+      console.log(`Credit check failed for business ${businessId}. Insufficient credits.`);
+      res.status(402).json({ error: 'Not enough credits for caption generation.' });
+      return; // Explicit return after sending response
+    }
+    console.log(`Credits check passed for business ${businessId}.`);
+
+
+    // 1. Determine the prompt to use
+    const finalPrompt = await buildPrompt(req.body);
+    console.log(`Using final prompt for caption: "${finalPrompt.substring(0, 50)}..."`);
+
+
+    // 2. Generate caption using OpenAI (gpt-4o-mini)
     console.log('Generating caption...');
     const captionResponse = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // Use the smaller model for captions
-      messages: [{ role: 'user', content: `Generate a short, engaging social media caption for the following idea: ${prompt}` }],
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: `Generate a short, engaging social media caption for the following idea: ${finalPrompt}` }],
       max_tokens: 100,
     });
     const caption = captionResponse.choices[0]?.message?.content?.trim() ?? 'Placeholder caption';
     console.log(`Caption generated: "${caption.substring(0,50)}..."`);
 
 
-    // 2. Save initial post data (including caption) to Supabase
+    // 3. Save initial post data (including caption) to Supabase
     console.log('Saving post to database...');
     const { data: postData, error: postError } = await supabase
       .from('posts')
@@ -108,19 +181,23 @@ const createPostHandler = async (req: Request, res: Response, next: NextFunction
     const postId = postData.id;
     console.log(`Post saved with ID: ${postId}`);
 
-    // 3. Add job to the image generation queue
+    // 4. Add job to the image generation queue
     console.log(`Adding job to queue for post ${postId}...`);
-    // Pass the original user prompt to the image worker
-    await queue.add('generate', { postId, businessId, prompt }); // Pass the received prompt
+    // Pass the final prompt (from template or custom) to the image worker
+    await queue.add('generate', { postId, businessId, prompt: finalPrompt }); // Pass the final prompt
     console.log(`Job added for post ${postId}`);
 
     // Respond immediately, the worker will handle the rest
-    // Send back the post ID so the frontend can potentially track it
     res.status(202).json({ message: 'Content generation started.', postId });
 
   } catch (err) {
     console.error('Error in /content/text route:', err);
-    next(err); // Pass error to the error handling middleware
+    // Handle specific errors like 'Template not found'
+    if (err instanceof Error && (err.message.includes('Template not found') || err.message.includes('required'))) {
+        res.status(400).json({ error: err.message });
+        return; // Explicit return after sending response
+    }
+    next(err); // Pass other errors to the general error handling middleware
   }
 };
 
@@ -188,19 +265,31 @@ const getPostsHandler: RequestHandler<
 app.get('/content/posts', getPostsHandler);
 
 // --- TEMPLATES ---
-// TODO: Replace with database query later
-const templates = [
-  { id: 'spring_sale', name: 'Spring Sale', prompt: 'Vibrant illustration for a spring sale event, featuring blooming flowers and bright colors.' },
-  { id: 'product_drop', name: 'New Product Drop', prompt: 'Sleek product shot style image for a new product launch announcement. Minimalist background, focused on the product.' },
-  { id: 'event_flyer', name: 'Local Event Flyer', prompt: 'Eye-catching flyer design for a local community event. Include space for text details.' },
-  { id: 'testimonial_quote', name: 'Customer Testimonial', prompt: 'Professional graphic to accompany a customer testimonial quote. Clean design, perhaps with abstract shapes.' },
-  { id: 'behind_the_scenes', name: 'Behind the Scenes', prompt: 'Candid photo style image showing a behind-the-scenes look at the business or team.' },
-];
-
-app.get('/content/templates', (req, res) => {
+// Typed handler for GET /content/templates
+const getTemplatesHandler: RequestHandler = async (req, res, next) => {
   console.log('GET /content/templates');
-  res.json(templates);
-});
+  try {
+      const { data, error } = await supabase
+          .from('templates')
+          .select('id, name');
+
+      if (error) {
+          console.error("Error fetching templates:", error);
+          // Create error object and pass to middleware
+          const err = new Error(`Failed to fetch templates: ${error.message}`);
+          (err as any).status = 500; // Optional: suggest status code
+          return next(err); // Pass error to middleware
+      }
+
+      res.json(data || []); // Send response
+  } catch (err) {
+      console.error("Error in /content/templates route:", err);
+      next(err); // Pass unexpected errors to error handler
+  }
+};
+
+// Use the typed handler
+app.get('/content/templates', getTemplatesHandler);
 
 // Add error handling middleware *last*
 app.use(errorHandler);

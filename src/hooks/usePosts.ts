@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 // Adjust according to your actual data structure from the API
 export interface Post {
   id: string;
-  caption: string;
+  caption: string | null; // Caption can be null initially
   status: 'pending' | 'generating' | 'ready' | 'failed'; // Example statuses
   created_at: string;
   generated_images?: { // FK relationship - Supabase returns as object or null
@@ -23,10 +23,12 @@ const fetchPosts = async (businessId: string): Promise<Post[]> => {
   return data as Post[]; // Cast to Post[]
 };
 
+const POLLING_INTERVAL = 5000; // Use constant for interval
+
 // Create the custom hook
 export function usePosts(businessId: string | undefined) {
-  return useQuery<Post[], Error>({ // Explicitly type query data and error
-    queryKey: ['posts', businessId], // Query key includes businessId
+  return useQuery<Post[], Error>({ 
+    queryKey: ['posts', businessId],
     queryFn: () => {
       if (!businessId) {
         // Or return Promise.resolve([]) if you prefer empty array over throwing
@@ -36,8 +38,27 @@ export function usePosts(businessId: string | undefined) {
     },
     // Fetch only if businessId is present
     enabled: !!businessId,
-    // Refetch every 4 seconds
-    refetchInterval: 4000,
+    // Refetch based on post statuses
+    refetchInterval: (query) => {
+      // query.state.data contains the current data
+      const posts = query.state.data;
+      // Check if any post is still in a 'generating' or 'pending' state
+      const isAnyPostProcessing = posts?.some(post => 
+        post.status === 'generating' || post.status === 'pending'
+      );
+
+      // If any post is processing, continue polling
+      if (isAnyPostProcessing) {
+        console.log("Polling posts..."); // Optional: log polling activity
+        return POLLING_INTERVAL;
+      }
+
+      // Otherwise, stop polling
+      console.log("All posts settled, stopping polling."); // Optional: log stop
+      return false; // Returning false stops the interval
+    },
+    // Only refetch when the window is focused, to avoid background polling when idle
+    refetchIntervalInBackground: false, 
     // Optional: Configure stale time, cache time, etc.
     // staleTime: 5 * 60 * 1000, // 5 minutes
     // cacheTime: 10 * 60 * 1000, // 10 minutes

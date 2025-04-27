@@ -24,18 +24,18 @@ export async function getUserBusinesses() {
   
   const { data, error } = await supabase
     .from('profiles')
-    .select('organization_id')
+    .select('business_id')
     .eq('id', user.id)
     .single();
     
   if (error) throw error;
   
   // If user has an associated business
-  if (data.organization_id) {
+  if (data.business_id) {
     const { data: business, error: businessError } = await supabase
-      .from('organizations')
+      .from('businesses')
       .select('*')
-      .eq('id', data.organization_id)
+      .eq('id', data.business_id)
       .single();
       
     if (businessError) throw businessError;
@@ -65,7 +65,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
   return {
     id: data.id,
     email: data.email,
-    business_id: data.organization_id,
+    business_id: data.business_id,
     role: data.role,
     is_approved: data.is_approved
   };
@@ -76,7 +76,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
  */
 export async function getBusinessById(id: string): Promise<Business | null> {
   const { data, error } = await supabase
-    .from('organizations')
+    .from('businesses')
     .select('*')
     .eq('id', id)
     .single();

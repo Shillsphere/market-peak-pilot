@@ -9,7 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      organizations: {
+      businesses: {
         Row: {
           created_at: string
           id: string
@@ -36,7 +36,7 @@ export type Database = {
           email: string
           id: string
           is_approved: boolean
-          organization_id: string | null
+          business_id: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
@@ -45,7 +45,7 @@ export type Database = {
           email: string
           id: string
           is_approved?: boolean
-          organization_id?: string | null
+          business_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -54,16 +54,16 @@ export type Database = {
           email?: string
           id?: string
           is_approved?: boolean
-          organization_id?: string | null
+          business_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "profiles_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: "profiles_business_id_fkey"
+            columns: ["business_id"]
             isOneToOne: false
-            referencedRelation: "organizations"
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
