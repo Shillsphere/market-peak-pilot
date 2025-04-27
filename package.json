@@ -11,10 +11,11 @@
     "preview": "vite preview",
     "start:api": "node --env-file=.env backend/dist/server.js",
     "start:worker": "node --env-file=.env backend/dist/workers/imageWorker.js",
-    "dev:api": "nodemon --watch backend/dist --ext js --exec npm run start:api",
-    "dev:worker": "nodemon --watch backend/dist --ext js --exec npm run start:worker",
+    "dev:api": "nodemon --watch backend/src --ext ts --ignore backend/dist --exec \"tsc -p tsconfig.node.json\"",
+    "dev:worker": "nodemon --watch backend/src --ext ts --ignore backend/dist --exec \"tsc -p tsconfig.node.json\"",
     "watch:backend": "tsc -p tsconfig.node.json --watch",
-    "dev": "run-p watch:backend dev:api dev:worker dev:web"
+    "dev": "npm run build:backend && run-p start:api start:worker dev:web watch:backend",
+    "build:backend": "tsc -p tsconfig.node.json"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

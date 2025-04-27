@@ -132,7 +132,7 @@ const createPostHandler = async (req: Request, res: Response, next: NextFunction
     console.log(`Checking credits for business ${businessId}...`);
     const { data: creditOk, error: creditErr } = await supabase.rpc(
       'check_and_decrement_credits',
-      { bid: businessId }
+      { bid: businessId, cost: 1 }  // Adding default cost parameter
     );
 
     if (creditErr) {

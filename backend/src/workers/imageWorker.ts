@@ -25,7 +25,8 @@ const worker = new Worker<JobData>(
       console.log(`Checking credits for business ${businessId}...`);
       // NOTE: Ensure 'check_and_decrement_credits' function exists in Supabase
       const { data: checkData, error: checkError } = await supabase.rpc('check_and_decrement_credits', {
-        bid: businessId
+        bid: businessId,
+        cost: 1
       });
 
       if (checkError) {
@@ -67,11 +68,11 @@ const worker = new Worker<JobData>(
       const buffer = Buffer.from(await imageResponse.arrayBuffer());
       console.log('Image downloaded, uploading to Supabase Storage...');
 
-      const filePath = `public/${businessId}/${postId}.png`; // Adjusted path to be within 'public' bucket
-      // NOTE: Ensure 'public-images' bucket exists and RLS allows uploads/updates
+      const filePath = `public/${businessId}/${postId}.png`; // Add 'public/' prefix to match frontend URL format
+      // NOTE: Ensure bucket exists and RLS allows uploads/updates
       const { error: uploadError } = await supabase.storage
-        .from('public-images') // Use the bucket name here
-        .upload(filePath, buffer, {
+        .from('public') // Use the standard 'public' bucket that Supabase typically creates by default
+        .upload(filePath.replace('public/', ''), buffer, {
           upsert: true,
           contentType: 'image/png'
           // Removed metadata, Supabase adds defaults. Add if needed.
