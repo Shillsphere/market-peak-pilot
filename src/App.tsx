@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase";
 import { DashboardHome } from "./pages/dashboard/DashboardHome";
 import { ContentPage } from "./pages/dashboard/ContentPage";
 import { ProfilePage } from "./pages/dashboard/ProfilePage";
+import { ResearchPage } from "./pages/dashboard/ResearchPage";
 
 const queryClient = new QueryClient();
 
@@ -62,8 +63,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
+  <BrowserRouter>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
@@ -87,6 +88,16 @@ const App = () => (
             <Route path="/dashboard/profile" element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/research" element={
+              <ProtectedRoute>
+                <ResearchPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/research/:jobId" element={
+              <ProtectedRoute>
+                <ResearchPage />
               </ProtectedRoute>
             } />
             <Route path="/dashboard/inbox" element={
@@ -118,8 +129,8 @@ const App = () => (
           </Routes>
         </TooltipProvider>
       </AuthProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
+    </QueryClientProvider>
+  </BrowserRouter>
 );
 
 export default App;

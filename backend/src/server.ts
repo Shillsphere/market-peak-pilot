@@ -1,9 +1,10 @@
-// import 'dotenv/config'; // No longer needed with --env-file flag
+import "dotenv/config";
 import express, { Request, Response, NextFunction, RequestHandler } from 'express';
 import { supabase } from './lib/supabase.js';
 import queue from './queue.js';
 import { openai } from './lib/openai.js';
 import { z } from 'zod';
+import researchRoutes from './routes/researchRoutes.js'; // Use .js for ESM
 
 // Define interfaces for request and response bodies for clarity
 interface CreatePostRequestBody {
@@ -117,6 +118,9 @@ app.use(express.json()); // Middleware to parse JSON bodies
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
+
+// Mount the research routes
+app.use('/api/research', researchRoutes);
 
 // Extracted and typed handler for POST /content/text - Modified
 const createPostHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

@@ -1,10 +1,11 @@
 {
   "mcpServers": {
     "supabase": {
-      "command": "npx",
+      "env": {
+        "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+      },
+      "command": "./node_modules/.bin/mcp-server-supabase",
       "args": [
-        "-y",
-        "@supabase/mcp-server-supabase@latest",
         "--access-token",
         "sbp_9c759e2e7956cb11f94653526de72b5ce052b90c"
       ]

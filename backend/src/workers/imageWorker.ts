@@ -1,3 +1,4 @@
+import "dotenv/config";
 // import 'dotenv/config'; // No longer needed with --env-file flag
 import { Worker, Job } from 'bullmq';
 import fetch from 'node-fetch';

@@ -13,7 +13,8 @@ import {
   Menu, 
   X, 
   LogOut,
-  Search
+  Search,
+  FlaskConical
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -31,6 +32,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       name: "Content", 
       path: "/dashboard/content", 
       icon: <LayoutDashboard className="h-5 w-5" /> 
+    },
+    {
+      name: "Research",
+      path: "/dashboard/research",
+      icon: <FlaskConical className="h-5 w-5" />
     },
     { 
       name: "Inbox", 
