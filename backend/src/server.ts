@@ -1,4 +1,10 @@
 import "dotenv/config";
+// Force environment variables to be loaded and set
+if (!process.env.SUPABASE_JWT_SECRET) {
+  console.log("SUPABASE_JWT_SECRET not found in process.env, setting manually as fallback");
+  process.env.SUPABASE_JWT_SECRET = "sHC4q65fKLPu2vGxAr0fDlnOQuKosDO8/VC+lJEVmxt8O0tR6f1MfcAVkdqfByVDPdUHcJuL5bMAmCJGDOSliw==";
+}
+console.log("SUPABASE_JWT_SECRET in server.ts:", process.env.SUPABASE_JWT_SECRET ? "Loaded" : "MISSING!");
 import express, { Request, Response, NextFunction, RequestHandler } from 'express';
 import { supabase } from './lib/supabase.js';
 import queue from './queue.js';
