@@ -39,7 +39,7 @@ const ContactSection = () => {
   };
   
   return (
-    <section id="contact" className="section-padding bg-white">
+    <section id="contact" className="section-padding bg-[#FFFBF6]">
       <div className="container px-6 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div>
@@ -85,7 +85,7 @@ const ContactSection = () => {
             </div>
           </div>
           
-          <div className="bg-gray-50 rounded-lg p-8">
+          <div className="bg-white rounded-lg p-8 shadow-md border border-gray-100">
             <h3 className="text-xl font-semibold mb-6">Send us a message</h3>
             
             {isSubmitted ? (
@@ -96,7 +96,7 @@ const ContactSection = () => {
               <form onSubmit={handleSubmit}>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Name</Label>
+                    <Label htmlFor="name" className="block text-gray-700">Name</Label>
                     <Input 
                       id="name"
                       name="name"
@@ -104,12 +104,12 @@ const ContactSection = () => {
                       onChange={handleChange}
                       placeholder="Your name"
                       required
-                      className="mt-1"
+                      className="mt-1 border-gray-200 focus:border-primary focus:ring-primary"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className="block text-gray-700">Email</Label>
                     <Input 
                       id="email"
                       name="email"
@@ -118,24 +118,24 @@ const ContactSection = () => {
                       onChange={handleChange}
                       placeholder="you@example.com"
                       required
-                      className="mt-1"
+                      className="mt-1 border-gray-200 focus:border-primary focus:ring-primary"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="company">Company</Label>
+                    <Label htmlFor="company" className="block text-gray-700">Company</Label>
                     <Input 
                       id="company"
                       name="company"
                       value={formData.company}
                       onChange={handleChange}
                       placeholder="Your company"
-                      className="mt-1"
+                      className="mt-1 border-gray-200 focus:border-primary focus:ring-primary"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="message">Message</Label>
+                    <Label htmlFor="message" className="block text-gray-700">Message</Label>
                     <Textarea 
                       id="message"
                       name="message"
@@ -143,7 +143,7 @@ const ContactSection = () => {
                       onChange={handleChange}
                       placeholder="How can we help you?"
                       required
-                      className="mt-1 min-h-[120px]"
+                      className="mt-1 min-h-[120px] border-gray-200 focus:border-primary focus:ring-primary"
                     />
                   </div>
                   

@@ -47,12 +47,12 @@ const HowItWorksSection = () => {
           {steps.map((step, index) => (
             <div 
               key={index} 
-              className="flex flex-col"
+              className="flex flex-col animate-fade-in"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-center mb-4">
                 <span className="text-4xl font-serif font-bold text-primary/20">{step.number}</span>
-                <span className="ml-3 h-px flex-1 bg-gray-200"></span>
+                <span className="ml-3 h-px flex-1 bg-primary/10"></span>
               </div>
               <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
               <p className="text-gray-600">{step.description}</p>

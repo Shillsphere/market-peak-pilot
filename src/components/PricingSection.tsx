@@ -75,7 +75,8 @@ const PricingSection = () => {
               key={index} 
               className={`bg-white rounded-lg border ${
                 plan.popular ? "border-primary shadow-lg relative" : "border-gray-200"
-              }`}
+              } animate-fade-in`}
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               {plan.popular && (
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
