@@ -22,7 +22,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-12">
             <a href="#features" className="text-gray-700 hover:text-gray-900 text-lg">Features</a>
             <Link to="/how-it-works">
-              <DiscoButton variant="default" size="xl" className="text-lg min-w-44">
+              <DiscoButton variant="default" size="lg" className="text-lg">
                 How It Works
               </DiscoButton>
             </Link>
@@ -55,7 +55,7 @@ const Navbar = () => {
             <div className="flex flex-col px-6 py-4 space-y-4">
               <a href="#features" className="text-gray-700 hover:text-gray-900">Features</a>
               <Link to="/how-it-works">
-                <DiscoButton variant="default" size="xl" className="w-full text-lg">
+                <DiscoButton variant="default" size="lg" className="w-full text-lg">
                   How It Works
                 </DiscoButton>
               </Link>
