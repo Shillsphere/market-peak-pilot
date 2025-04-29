@@ -32,7 +32,7 @@ const Navbar = () => {
               </Button>
             </Link>
             <Link to="/sign-up">
-              <DiscoButton size="lg" className="text-lg">Join Wait</DiscoButton>
+              <DiscoButton size="lg" className="text-lg">Join Waitlist</DiscoButton>
             </Link>
           </div>
 
