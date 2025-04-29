@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { DiscoButton } from "@/components/ui/disco-button";
 import { Menu } from "lucide-react";
@@ -64,7 +63,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           <div>
             <Link to="/">
-              <img src="/lovable-uploads/8b96431b-d832-42d1-aaf7-1caaf5e13c2e.png" alt="mktpk logo" className="h-24 w-auto object-contain" />
+              <img src="/lovable-uploads/8b96431b-d832-42d1-aaf7-1caaf5e13c2e.png" alt="mktpk logo" className="h-12 w-auto object-contain" />
             </Link>
           </div>
 
