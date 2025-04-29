@@ -1,21 +1,16 @@
-
 import React from "react";
 import Navbar from "@/components/Navbar";
 import { DiscoButton } from "@/components/ui/disco-button";
 import { Link } from "react-router-dom";
-
 const MeetTheFounders = () => {
-  return (
-    <div className="min-h-screen bg-white">
+  return <div className="min-h-screen bg-white">
       <Navbar />
       
       {/* Hero Banner */}
       <section className="pt-40 pb-20 bg-[#FFFBF6]">
         <div className="container px-6 mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight">Meet the Founders</h1>
-          <p className="mt-6 text-xl text-gray-600 max-w-3xl mx-auto">
-            The team behind Market Peak's mission to transform local marketing through AI automation.
-          </p>
+          <p className="mt-6 text-xl text-gray-600 max-w-3xl mx-auto">The team behind Market Peak's mission to transform local marketing through AI automation. Read up on the three founders, all from Libertyville, IL.</p>
         </div>
       </section>
       
@@ -26,29 +21,17 @@ const MeetTheFounders = () => {
             {/* Founder 1 */}
             <div className="flex flex-col items-center">
               <div className="rounded-lg overflow-hidden shadow-lg mb-6 w-64 h-64">
-                <img 
-                  src="/lovable-uploads/6fa44a85-2488-40e1-a969-e1f63f5dd950.png"
-                  alt="Harry Thomas, CEO & Co-Founder" 
-                  className="w-full h-full object-cover"
-                />
+                <img src="/lovable-uploads/6fa44a85-2488-40e1-a969-e1f63f5dd950.png" alt="Harry Thomas, CEO & Co-Founder" className="w-full h-full object-cover" />
               </div>
-              <h3 className="text-2xl font-bold">Harry Thomas</h3>
+              <h3 className="text-2xl font-bold">Parker Nuttall</h3>
               <p className="text-lg text-gray-600 mb-4">CEO & Co-Founder</p>
-              <p className="text-center text-gray-700 leading-relaxed">
-                Harry combines a background in AI research with deep experience in local business marketing. 
-                Prior to founding Market Peak, he led growth at a marketing SaaS company helping over 5,000 small 
-                businesses improve their online presence. Harry believes AI should amplify human creativity, not replace it.
-              </p>
+              <p className="text-center text-gray-700 leading-relaxed">Parker is an engineering leader with expertise in AI and computer science. He will be attending UW-Madison with plans to study computer science. He previously architected e-commerce stores, notably The Angler's Outfitter, where he automated the entire side of marketing operations, helping Angler's grow to over 6 figures in revenue. Parker is passionate about making advanced AI agents available for all businesses who are willing to evolve, with his main goal of having mktpk overtake the entire marketing workflow of businesses.</p>
             </div>
             
             {/* Founder 2 */}
             <div className="flex flex-col items-center">
               <div className="rounded-lg overflow-hidden shadow-lg mb-6 w-64 h-64">
-                <img 
-                  src="/lovable-uploads/4a8112d9-5772-45ce-a60e-17406cf7f3fd.png" 
-                  alt="Parker Wilson, CTO & Co-Founder" 
-                  className="w-full h-full object-cover"
-                />
+                <img src="/lovable-uploads/4a8112d9-5772-45ce-a60e-17406cf7f3fd.png" alt="Parker Wilson, CTO & Co-Founder" className="w-full h-full object-cover" />
               </div>
               <h3 className="text-2xl font-bold">Parker Wilson</h3>
               <p className="text-lg text-gray-600 mb-4">CTO & Co-Founder</p>
@@ -63,11 +46,7 @@ const MeetTheFounders = () => {
             {/* Founder 3 */}
             <div className="flex flex-col items-center">
               <div className="rounded-lg overflow-hidden shadow-lg mb-6 w-64 h-64">
-                <img 
-                  src="/lovable-uploads/e581a9ae-1779-4c6e-b674-f148c99abe6b.png" 
-                  alt="Sarah Chen, COO & Co-Founder" 
-                  className="w-full h-full object-cover"
-                />
+                <img src="/lovable-uploads/e581a9ae-1779-4c6e-b674-f148c99abe6b.png" alt="Sarah Chen, COO & Co-Founder" className="w-full h-full object-cover" />
               </div>
               <h3 className="text-2xl font-bold">Sarah Chen</h3>
               <p className="text-lg text-gray-600 mb-4">COO & Co-Founder</p>
@@ -102,11 +81,7 @@ const MeetTheFounders = () => {
         <div className="container px-6 mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <img 
-                src="/lovable-uploads/8b96431b-d832-42d1-aaf7-1caaf5e13c2e.png" 
-                alt="mktpk logo" 
-                className="h-10 invert"
-              />
+              <img src="/lovable-uploads/8b96431b-d832-42d1-aaf7-1caaf5e13c2e.png" alt="mktpk logo" className="h-10 invert" />
               <p className="mt-4 text-gray-400 text-sm">
                 Market Peak helps businesses automate their marketing with AI-powered competitor research, content generation, and local distribution.
               </p>
@@ -170,8 +145,6 @@ const MeetTheFounders = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default MeetTheFounders;
