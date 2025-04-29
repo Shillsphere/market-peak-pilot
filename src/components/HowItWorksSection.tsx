@@ -1,10 +1,7 @@
-
 import { DiscoButton } from "@/components/ui/disco-button";
 import { Link } from "react-router-dom";
-
 const HowItWorksSection = () => {
-  return (
-    <section id="how-it-works" className="section-padding bg-gray-50">
+  return <section id="how-it-works" className="section-padding bg-gray-50">
       <div className="container px-6 mx-auto">
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold">How It Works</h2>
@@ -21,11 +18,7 @@ const HowItWorksSection = () => {
           </div>
 
           <div className="mt-16 max-w-3xl mx-auto">
-            <img 
-              src="/lovable-uploads/27337f5d-ecf5-4d1b-8152-727ff0d4635d.png" 
-              alt="Sample workflow" 
-              className="max-w-full rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
-            />
+            <img src="/lovable-uploads/27337f5d-ecf5-4d1b-8152-727ff0d4635d.png" alt="Sample workflow" className="max-w-full rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300" />
           </div>
         </div>
         
@@ -41,17 +34,11 @@ const HowItWorksSection = () => {
               </DiscoButton>
             </div>
             <div className="md:w-1/2 mt-8 md:mt-0 flex justify-center">
-              <img 
-                src="/lovable-uploads/0976d68e-b841-4176-bf57-0db9f2c318cd.png" 
-                alt="Market Peak Dashboard" 
-                className="w-full max-w-xs rounded-lg shadow-lg" 
-              />
+              
             </div>
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default HowItWorksSection;
