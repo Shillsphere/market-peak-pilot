@@ -1,24 +1,16 @@
-
 import { Button } from "@/components/ui/button";
 import { DiscoButton } from "@/components/ui/disco-button";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  return (
-    <nav className="bg-gradient-to-r from-white to-gray-50 py-3 px-6 md:px-10 fixed w-full z-50 shadow-sm">
+  return <nav className="bg-gradient-to-r from-white to-gray-50 py-3 px-6 md:px-10 fixed w-full z-50 shadow-sm">
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
           <div>
             <Link to="/">
-              <img 
-                src="/lovable-uploads/e0f970a4-0873-415a-a07e-f01329d659a1.png" 
-                alt="mktpk logo" 
-                className="h-8 object-contain" 
-              />
+              <img src="/lovable-uploads/e0f970a4-0873-415a-a07e-f01329d659a1.png" alt="mktpk logo" className="h-8 object-contain" />
             </Link>
           </div>
 
@@ -42,7 +34,7 @@ const Navbar = () => {
               </Button>
             </Link>
             <Link to="/sign-up">
-              <DiscoButton className="bg-primary text-white hover:bg-primary/90 rounded-full px-6 py-2 font-medium">
+              <DiscoButton className="text-white rounded-full px-6 py-2 font-medium bg-slate-950 hover:bg-slate-800">
                 Get Started
               </DiscoButton>
             </Link>
@@ -57,8 +49,7 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
+        {isMenuOpen && <div className="md:hidden absolute top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
             <div className="flex flex-col px-6 py-4 space-y-4">
               <a href="#features" className="text-gray-700 hover:text-primary">Features</a>
               <Link to="/how-it-works" className="text-gray-700 hover:text-primary">
@@ -79,11 +70,8 @@ const Navbar = () => {
                 </DiscoButton>
               </Link>
             </div>
-          </div>
-        )}
+          </div>}
       </div>
-    </nav>
-  );
+    </nav>;
 };
-
 export default Navbar;
