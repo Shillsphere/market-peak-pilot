@@ -64,7 +64,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           <div>
             <Link to="/">
-              <img src="/lovable-uploads/8b96431b-d832-42d1-aaf7-1caaf5e13c2e.png" alt="mktpk logo" className="h-64 w-auto object-contain" />
+              <img src="/lovable-uploads/8b96431b-d832-42d1-aaf7-1caaf5e13c2e.png" alt="mktpk logo" className="h-96 w-auto object-contain" />
             </Link>
           </div>
 
@@ -106,7 +106,7 @@ const Navbar = () => {
             <div className="flex flex-col px-6 py-4 space-y-4">
               <a href="#features" className={isActive("features")}>Features</a>
               <Link to="/how-it-works" className="bg-black text-white px-3 py-2 rounded-md">
-                How It<br />Works
+                How It Works
               </Link>
               <a href="#testimonials" className={isActive("testimonials")}>Testimonials</a>
               <a href="#pricing" className={isActive("pricing")}>Pricing</a>
