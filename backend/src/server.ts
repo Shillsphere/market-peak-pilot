@@ -1,9 +1,13 @@
-// import 'dotenv/config'; // No longer needed with --env-file flag
+// import 'dotenv/config'; // Load environment variables from .env - REMOVED explicit dotenv loading
+
+// import 'dotenv/config'; // Replaced by explicit call above
 import express, { Request, Response, NextFunction, RequestHandler } from 'express';
 import { supabase } from './lib/supabase.js';
-import queue from './queue.js';
+import { generateQueue } from './queue.js';
 import { openai } from './lib/openai.js';
 import { z } from 'zod';
+import credentialsRoutes from './routes/credentialsRoutes.js';
+import { testEncryptionKey } from './lib/encryption.js';
 
 // Define interfaces for request and response bodies for clarity
 interface CreatePostRequestBody {
@@ -113,6 +117,19 @@ const port = process.env.PORT || 4000; // Use environment variable or default
 
 app.use(express.json()); // Middleware to parse JSON bodies
 
+// Verify encryption key is set up
+if (!process.env.ENCRYPTION_KEY) {
+  console.error('WARNING: ENCRYPTION_KEY environment variable is not set. Credentials encryption will not work!');
+} else {
+  // Test the encryption key
+  const keyValid = testEncryptionKey();
+  if (keyValid) {
+    console.log('Encryption key is valid and working properly.');
+  } else {
+    console.error('ERROR: Encryption key test failed. Please check the ENCRYPTION_KEY format.');
+  }
+}
+
 // Health check route
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
@@ -184,7 +201,7 @@ const createPostHandler = async (req: Request, res: Response, next: NextFunction
     // 4. Add job to the image generation queue
     console.log(`Adding job to queue for post ${postId}...`);
     // Pass the final prompt (from template or custom) to the image worker
-    await queue.add('generate', { postId, businessId, prompt: finalPrompt }); // Pass the final prompt
+    await generateQueue.add('generate', { postId, businessId, prompt: finalPrompt }); // Pass the final prompt
     console.log(`Job added for post ${postId}`);
 
     // Respond immediately, the worker will handle the rest
@@ -290,6 +307,9 @@ const getTemplatesHandler: RequestHandler = async (req, res, next) => {
 
 // Use the typed handler
 app.get('/content/templates', getTemplatesHandler);
+
+// Mount credential routes
+app.use('/credentials', credentialsRoutes);
 
 // Add error handling middleware *last*
 app.use(errorHandler);
