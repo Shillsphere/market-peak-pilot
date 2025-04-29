@@ -1,26 +1,35 @@
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 const workflows = [
   {
     title: "How Competitor Deep Research Works",
-    image: "/lovable-uploads/28f1f2ec-f8ed-4af2-8815-b735ab3655da.png",
-    alt: "Competitor research workflow showing steps: Add Rivals, Enter Goal, Crawl Google, Crawl Yelp, Insights Board, and Gap Detection"
+    description: "Analyze your competition's strategies to find actionable opportunities for your business.",
+    image: "/lovable-uploads/27337f5d-ecf5-4d1b-8152-727ff0d4635d.png",
+    alt: "Competitor research workflow showing steps: Add Rivals, Enter Goal, Crawl Google, Crawl Yelp, Insights Board, and Gap Detection",
+    outputs: ["Competitive Insights", "Actionable Gaps", "Updated Plan"]
   },
   {
     title: "How Content Creation Works",
-    image: "/lovable-uploads/e581a9ae-1779-4c6e-b674-f148c99abe6b.png",
-    alt: "Content creation workflow showing steps: Enter Prompt, Generate Ideas, Write Content, Visual Design, and Export to Distribution"
+    description: "Transform your ideas into engaging content with our AI-powered creation system.",
+    image: "/lovable-uploads/88c819fb-9d1c-43b1-bedc-69f70a3fafec.png",
+    alt: "Content creation workflow showing steps: Enter Prompt, Generate Ideas, Write Content, Visual Design, and Export to Distribution",
+    outputs: ["Engaging Post", "Ready Assets"]
   },
   {
     title: "How mktpk Content Distribution Works",
-    image: "/lovable-uploads/8a684c6f-e0a8-4888-84bf-e91e357d32b8.png",
-    alt: "Content distribution workflow showing steps: Paste Content, Pick Channels, Schedule Send, Hyperpush Blast, Track Buzz, and Auto Boost"
+    description: "Distribute your content across multiple channels with intelligent scheduling and performance tracking.",
+    image: "/lovable-uploads/43142f5f-6a99-4304-b444-3f3d7638cdf2.png",
+    alt: "Content distribution workflow showing steps: Paste Content, Pick Channels, Schedule Send, Hyperpush Blast, Track Buzz, and Auto Boost",
+    outputs: ["Multi-Channel Reach", "Performance Boost"]
   },
   {
     title: "How mktpk General AI Agent Works",
-    image: "/lovable-uploads/e0f970a4-0873-415a-a07e-f01329d659a1.png",
-    alt: "General AI agent workflow showing steps: Ask Anything, Smart Reasoning, Toolbox Calls, Fact Fusion, Trend Highlights, and Clear Answers"
+    description: "Get instant answers and market insights with our powerful AI agent technology.",
+    image: "/lovable-uploads/e1a417cd-38b2-4ef5-b31c-3c85a7d3ee99.png",
+    alt: "General AI agent workflow showing steps: Ask Anything, Smart Reasoning, Toolbox Calls, Fact Fusion, Trend Highlights, and Clear Answers",
+    outputs: ["Instant Answers", "Market Trends"]
   }
 ];
 
@@ -35,20 +44,37 @@ const HowItWorksSection = () => {
           </p>
         </div>
         
-        <div className="mt-16 space-y-20">
+        <div className="mt-16 space-y-24">
           {workflows.map((workflow, index) => (
             <div 
               key={index} 
               className="animate-fade-in"
               style={{ animationDelay: `${index * 0.2}s` }}
             >
-              <h3 className="text-2xl md:text-3xl font-bold text-center mb-8">{workflow.title}</h3>
-              <div className="flex justify-center">
-                <img 
-                  src={workflow.image} 
-                  alt={workflow.alt} 
-                  className="max-w-full rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-                />
+              <div className="max-w-4xl mx-auto">
+                <h3 className="text-2xl md:text-3xl font-bold text-center mb-4">{workflow.title}</h3>
+                <p className="text-gray-600 text-center mb-8 max-w-2xl mx-auto">{workflow.description}</p>
+                
+                <div className="bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <img 
+                    src={workflow.image} 
+                    alt={workflow.alt} 
+                    className="max-w-full rounded-lg w-full"
+                  />
+                </div>
+                
+                {workflow.outputs && workflow.outputs.length > 0 && (
+                  <div className="mt-6 flex flex-wrap justify-center gap-4">
+                    {workflow.outputs.map((output, idx) => (
+                      <span 
+                        key={idx} 
+                        className="inline-block bg-primary bg-opacity-10 text-primary-dark px-4 py-2 rounded-full text-sm font-medium"
+                      >
+                        {output}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}
