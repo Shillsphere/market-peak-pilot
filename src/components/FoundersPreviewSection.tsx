@@ -31,8 +31,8 @@ const FoundersPreviewSection = () => {
           </div>
           <div className="w-48 h-48 rounded-full overflow-hidden shadow-lg">
             <img 
-              src="/lovable-uploads/e581a9ae-1779-4c6e-b674-f148c99abe6b.png" 
-              alt="Sarah Chen, COO" 
+              src="/lovable-uploads/e9986eab-7318-47fe-be2f-9db80182c418.png" 
+              alt="Lukas, CTO" 
               className="w-full h-full object-cover"
             />
           </div>

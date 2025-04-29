@@ -1,4 +1,3 @@
-
 import React from "react";
 import Navbar from "@/components/Navbar";
 import { DiscoButton } from "@/components/ui/disco-button";
@@ -30,7 +29,7 @@ const MeetTheFounders = () => {
               <p className="text-center text-gray-700 leading-relaxed">Parker is an engineering leader with expertise in AI and computer science. He will be attending UW-Madison with plans to study computer science. He previously architected e-commerce stores, notably The Angler's Outfitter, where he automated the entire side of marketing operations, helping Angler's grow to over 6 figures in revenue. Parker is passionate about making advanced AI agents available for all businesses who are willing to evolve, with his main goal of having mktpk overtake the entire marketing workflow of businesses.</p>
             </div>
             
-            {/* Founder 2 - Updated to Harrison Clarkson */}
+            {/* Founder 2 */}
             <div className="flex flex-col items-center">
               <div className="rounded-lg overflow-hidden shadow-lg mb-6 w-64 h-64">
                 <img src="/lovable-uploads/4a8112d9-5772-45ce-a60e-17406cf7f3fd.png" alt="Harrison Clarkson, CMO & Co-Founder" className="w-full h-full object-cover" />
@@ -42,18 +41,17 @@ const MeetTheFounders = () => {
               </p>
             </div>
             
-            {/* Founder 3 */}
+            {/* Founder 3 - Updated to Lukas */}
             <div className="flex flex-col items-center">
               <div className="rounded-lg overflow-hidden shadow-lg mb-6 w-64 h-64">
-                <img src="/lovable-uploads/e581a9ae-1779-4c6e-b674-f148c99abe6b.png" alt="Sarah Chen, COO & Co-Founder" className="w-full h-full object-cover" />
+                <img src="/lovable-uploads/e9986eab-7318-47fe-be2f-9db80182c418.png" alt="Lukas, CTO & Co-Founder" className="w-full h-full object-cover" />
               </div>
-              <h3 className="text-2xl font-bold">Sarah Chen</h3>
-              <p className="text-lg text-gray-600 mb-4">COO & Co-Founder</p>
+              <h3 className="text-2xl font-bold">Lukas</h3>
+              <p className="text-lg text-gray-600 mb-4">CTO & Co-Founder</p>
               <p className="text-center text-gray-700 leading-relaxed">
-                Sarah brings over a decade of operational expertise from scaling tech startups. 
-                Her focus on customer success and process optimization ensures that Market Peak delivers 
-                exceptional value from day one. Sarah is committed to helping local businesses thrive in 
-                increasingly competitive markets by giving them access to enterprise-grade marketing tools.
+                Lukas is a self-taught technologist and lifelong builder with a deep passion for turning raw code into real-world impact. He'll attend Saint Louis University in Madrid to study Computer Science and Mechanical Engineering while continuing to play competitive soccer overseas. With over six years of advanced computer science education—including college-level coursework throughout high school—Lukas has mastered a wide range of programming languages and frameworks, powering everything from his own mobile app to customized tools for games used by thousands.
+
+                He thrives behind the scenes, obsessing over technical details and engineering the core systems that make Market Peak run. Whether it's a new AI integration or a feature that saves hours of manual work, Lukas brings an intense, laser-focused mindset that turns complexity into simplicity for small businesses.
               </p>
             </div>
           </div>
