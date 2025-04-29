@@ -1,15 +1,11 @@
-
 import { Button } from "@/components/ui/button";
 import { DiscoButton } from "@/components/ui/disco-button";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  return (
-    <nav className="bg-white py-6 px-6 md:px-10 fixed w-full z-50">
+  return <nav className="bg-white py-6 px-6 md:px-10 fixed w-full z-50">
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
           <div>
@@ -36,9 +32,7 @@ const Navbar = () => {
               </Button>
             </Link>
             <Link to="/sign-up">
-              <DiscoButton size="lg" className="text-lg">
-                Get Started
-              </DiscoButton>
+              <DiscoButton size="lg" className="text-lg">Join Wait</DiscoButton>
             </Link>
           </div>
 
@@ -51,8 +45,7 @@ const Navbar = () => {
         </div>
 
         {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden absolute top-24 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
+        {isMenuOpen && <div className="md:hidden absolute top-24 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
             <div className="flex flex-col px-6 py-4 space-y-4">
               <a href="#features" className="text-gray-700 hover:text-gray-900">Features</a>
               <Link to="/how-it-works">
@@ -75,11 +68,8 @@ const Navbar = () => {
                 </DiscoButton>
               </Link>
             </div>
-          </div>
-        )}
+          </div>}
       </div>
-    </nav>
-  );
+    </nav>;
 };
-
 export default Navbar;
