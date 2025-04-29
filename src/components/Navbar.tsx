@@ -3,10 +3,8 @@ import { DiscoButton } from "@/components/ui/disco-button";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
   return <nav className="bg-gradient-to-r from-white to-gray-50 py-3 px-6 md:px-10 fixed w-full z-50 shadow-sm">
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
@@ -22,7 +20,7 @@ const Navbar = () => {
             <Link to="/how-it-works" className="text-gray-700 hover:text-primary font-medium text-sm">
               How It Works
             </Link>
-            <a href="#testimonials" className="text-gray-700 hover:text-primary font-medium text-sm">Testimonials</a>
+            
             <a href="#contact" className="text-gray-700 hover:text-primary font-medium text-sm">Contact</a>
             <Link to="/meet-the-founders" className="text-gray-700 hover:text-primary font-medium text-sm">Meet the Founders</Link>
             <a href="#pricing" className="text-gray-700 hover:text-primary font-medium text-sm">Pricing</a>
