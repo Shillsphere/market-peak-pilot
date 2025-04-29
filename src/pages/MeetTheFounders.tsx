@@ -1,3 +1,4 @@
+
 import React from "react";
 import Navbar from "@/components/Navbar";
 import { DiscoButton } from "@/components/ui/disco-button";
@@ -44,14 +45,14 @@ const MeetTheFounders = () => {
             {/* Founder 3 - Updated to Lukas */}
             <div className="flex flex-col items-center">
               <div className="rounded-lg overflow-hidden shadow-lg mb-6 w-64 h-64">
-                <img src="/lovable-uploads/e9986eab-7318-47fe-be2f-9db80182c418.png" alt="Lukas, CTO & Co-Founder" className="w-full h-full object-cover" />
+                <img src="/lovable-uploads/e9986eab-7318-47fe-be2f-9db80182c418.png" alt="Lukas Krzeminski, CTO & Co-Founder" className="w-full h-full object-cover" />
               </div>
-              <h3 className="text-2xl font-bold">Lukas</h3>
+              <h3 className="text-2xl font-bold">Lukas Krzeminski</h3>
               <p className="text-lg text-gray-600 mb-4">CTO & Co-Founder</p>
               <p className="text-center text-gray-700 leading-relaxed">
-                Lukas is a self-taught technologist and lifelong builder with a deep passion for turning raw code into real-world impact. He'll attend Saint Louis University in Madrid to study Computer Science and Mechanical Engineering while continuing to play competitive soccer overseas. With over six years of advanced computer science education—including college-level coursework throughout high school—Lukas has mastered a wide range of programming languages and frameworks, powering everything from his own mobile app to customized tools for games used by thousands.
+                Lukas is a self-taught technologist and lifelong builder with a deep passion for turning code into impact. He'll attend Saint Louis University in Madrid to study Computer Science and Mechanical Engineering while continuing to play competitive soccer overseas. With over six years of advanced computer science education, Lukas has mastered multiple programming languages and frameworks, creating everything from mobile apps to customized tools used by thousands.
 
-                He thrives behind the scenes, obsessing over technical details and engineering the core systems that make Market Peak run. Whether it's a new AI integration or a feature that saves hours of manual work, Lukas brings an intense, laser-focused mindset that turns complexity into simplicity for small businesses.
+                He thrives behind the scenes, engineering the core systems that make Market Peak run, bringing a laser-focused mindset that turns complexity into simplicity for small businesses.
               </p>
             </div>
           </div>
