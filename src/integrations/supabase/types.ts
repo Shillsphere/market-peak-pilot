@@ -545,7 +545,10 @@ export type Database = {
         Returns: Json
       }
       check_and_decrement_credits: {
-        Args: { bid: string } | { bid: string; cost?: number }
+        Args:
+          | Record<PropertyKey, never>
+          | { bid: string }
+          | { bid: string; cost?: number }
         Returns: boolean
       }
       is_admin: {

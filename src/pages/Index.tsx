@@ -6,6 +6,7 @@ import HowItWorksSection from "@/components/HowItWorksSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import PricingSection from "@/components/PricingSection";
 import ContactSection from "@/components/ContactSection";
+import FoundersPreviewSection from "@/components/FoundersPreviewSection";
 
 const Index = () => {
   return (
@@ -17,6 +18,7 @@ const Index = () => {
       <TestimonialsSection />
       <PricingSection />
       <ContactSection />
+      <FoundersPreviewSection />
       
       <footer className="bg-gray-900 text-white py-12">
         <div className="container px-6 mx-auto">
@@ -56,6 +58,7 @@ const Index = () => {
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2">
                 <li><a href="#" className="text-gray-400 hover:text-white text-sm color-transition">About</a></li>
+                <li><Link to="/meet-the-founders" className="text-gray-400 hover:text-white text-sm color-transition">Meet the Founders</Link></li>
                 <li><a href="#contact" className="text-gray-400 hover:text-white text-sm color-transition">Contact</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white text-sm color-transition">Careers</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white text-sm color-transition">Privacy</a></li>

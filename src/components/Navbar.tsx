@@ -22,11 +22,12 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-12">
             <a href="#features" className="text-gray-700 hover:text-gray-900 text-lg">Features</a>
             <Link to="/how-it-works">
-              <DiscoButton variant="default" size="lg" className="text-lg">
+              <DiscoButton variant="default" size="xl" className="text-lg px-8 py-6 min-w-32">
                 How It Works
               </DiscoButton>
             </Link>
             <a href="#testimonials" className="text-gray-700 hover:text-gray-900 text-lg">Testimonials</a>
+            <Link to="/meet-the-founders" className="text-gray-700 hover:text-gray-900 text-lg">Meet the Founders</Link>
             <a href="#pricing" className="text-gray-700 hover:text-gray-900 text-lg">Pricing</a>
             <a href="#contact" className="text-gray-700 hover:text-gray-900 text-lg">Contact</a>
             <Link to="/sign-in">
@@ -60,6 +61,7 @@ const Navbar = () => {
                 </DiscoButton>
               </Link>
               <a href="#testimonials" className="text-gray-700 hover:text-gray-900">Testimonials</a>
+              <Link to="/meet-the-founders" className="text-gray-700 hover:text-gray-900">Meet the Founders</Link>
               <a href="#pricing" className="text-gray-700 hover:text-gray-900">Pricing</a>
               <a href="#contact" className="text-gray-700 hover:text-gray-900">Contact</a>
               <Link to="/sign-in">
