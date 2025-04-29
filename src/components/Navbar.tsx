@@ -72,9 +72,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-12">
             <a href="#features" className={`text-lg ${isActive("features")}`}>Features</a>
             <Link to="/how-it-works" className={`text-lg ${location.pathname === "/how-it-works" ? "font-bold text-black" : "text-gray-700 hover:text-gray-900"}`}>
-              <DiscoButton variant="default" size="xl" className="text-lg px-8 py-6 min-w-32">
-                How It Works
-              </DiscoButton>
+              How It Works
             </Link>
             <a href="#testimonials" className={`text-lg ${isActive("testimonials")}`}>Testimonials</a>
             <a href="#pricing" className={`text-lg ${isActive("pricing")}`}>Pricing</a>
@@ -108,9 +106,7 @@ const Navbar = () => {
             <div className="flex flex-col px-6 py-4 space-y-4">
               <a href="#features" className={isActive("features")}>Features</a>
               <Link to="/how-it-works" className={location.pathname === "/how-it-works" ? "font-bold text-black" : "text-gray-700 hover:text-gray-900"}>
-                <DiscoButton variant="default" size="lg" className="w-full text-lg">
-                  How It Works
-                </DiscoButton>
+                How It Works
               </Link>
               <a href="#testimonials" className={isActive("testimonials")}>Testimonials</a>
               <a href="#pricing" className={isActive("pricing")}>Pricing</a>
