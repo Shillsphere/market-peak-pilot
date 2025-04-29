@@ -120,6 +120,22 @@
   animation: fadeIn 0.5s ease-out forwards;
 }
 
+/* Tab transitions */
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-content-active {
+  animation: tabFadeIn 0.4s ease-out forwards;
+}
+
 /* Color transitions */
 .color-transition {
   @apply transition-colors duration-300;
@@ -133,4 +149,26 @@
 /* Hero illustration */
 .hero-illustration img {
   @apply transition-transform duration-500 hover:scale-[1.02];
+}
+
+/* Workflow image styling */
+.workflow-image {
+  @apply rounded-lg shadow-md transition-all duration-300;
+}
+
+/* Tab styling enhancements */
+.workflow-tab {
+  @apply relative overflow-hidden transition-all duration-300 cursor-pointer;
+}
+
+.workflow-tab::after {
+  @apply content-[''] absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 transition-transform duration-300 origin-left;
+}
+
+.workflow-tab:hover::after {
+  @apply scale-x-100;
+}
+
+.workflow-tab-active::after {
+  @apply scale-x-100;
 }
