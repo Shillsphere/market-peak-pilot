@@ -1,7 +1,7 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { DiscoButton } from "@/components/ui/disco-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -146,9 +146,9 @@ const SignUp = () => {
             </div>
           </div>
 
-          <Button className="w-full" type="submit" disabled={loading}>
+          <DiscoButton className="w-full" type="submit" disabled={loading}>
             {loading ? "Submitting..." : "Join the Waitlist"}
-          </Button>
+          </DiscoButton>
         </form>
       </div>
     </div>

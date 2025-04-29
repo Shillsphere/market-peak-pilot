@@ -1,5 +1,5 @@
 
-import { Button } from "@/components/ui/button";
+import { DiscoButton } from "@/components/ui/disco-button";
 
 const workflows = [
   {
@@ -81,9 +81,9 @@ const HowItWorksPage = () => {
               <p className="text-gray-600 mb-6">
                 Get started today and see how Market Peak can transform your business's local marketing strategy.
               </p>
-              <Button className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-md text-sm font-medium transition-colors">
+              <DiscoButton>
                 Get Started Now
-              </Button>
+              </DiscoButton>
             </div>
             <div className="md:w-1/2 mt-8 md:mt-0 flex justify-center">
               <img 

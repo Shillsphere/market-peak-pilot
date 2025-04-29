@@ -1,5 +1,5 @@
 
-import { Button } from "@/components/ui/button";
+import { DiscoButton } from "@/components/ui/disco-button";
 import { Link } from "react-router-dom";
 
 const HowItWorksSection = () => {
@@ -14,9 +14,9 @@ const HowItWorksSection = () => {
           
           <div className="mt-8">
             <Link to="/how-it-works">
-              <Button className="bg-primary hover:bg-primary-dark text-white px-8 py-6 rounded-md text-lg font-medium transition-colors">
+              <DiscoButton size="lg" className="font-medium text-lg">
                 See Our Workflows
-              </Button>
+              </DiscoButton>
             </Link>
           </div>
 
@@ -36,9 +36,9 @@ const HowItWorksSection = () => {
               <p className="text-gray-600 mb-6">
                 Get started today and see how Market Peak can transform your business's local marketing strategy.
               </p>
-              <Button className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-md text-sm font-medium transition-colors">
+              <DiscoButton>
                 Get Started Now
-              </Button>
+              </DiscoButton>
             </div>
             <div className="md:w-1/2 mt-8 md:mt-0 flex justify-center">
               <img 

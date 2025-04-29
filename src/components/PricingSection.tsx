@@ -1,6 +1,7 @@
 
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DiscoButton } from "@/components/ui/disco-button";
 
 const plans = [
   {
@@ -98,15 +99,19 @@ const PricingSection = () => {
                   ))}
                 </ul>
                 
-                <Button 
-                  className={`mt-8 w-full py-6 ${
-                    plan.popular 
-                      ? "bg-primary hover:bg-primary-dark text-white" 
-                      : "bg-white border border-primary text-primary hover:bg-primary/10"
-                  }`}
-                >
-                  {plan.cta}
-                </Button>
+                {plan.popular ? (
+                  <DiscoButton 
+                    className="mt-8 w-full py-6"
+                  >
+                    {plan.cta}
+                  </DiscoButton>
+                ) : (
+                  <Button 
+                    className={`mt-8 w-full py-6 bg-white border border-primary text-primary hover:bg-primary/10`}
+                  >
+                    {plan.cta}
+                  </Button>
+                )}
               </div>
             </div>
           ))}

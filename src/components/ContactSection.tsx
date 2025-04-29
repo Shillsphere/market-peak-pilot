@@ -1,6 +1,6 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { DiscoButton } from "@/components/ui/disco-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -156,9 +156,9 @@ const ContactSection = () => {
                     <Textarea id="message" name="message" value={formData.message} onChange={handleChange} placeholder="How can we help you?" required className="mt-1 min-h-[120px] border-gray-200 focus:border-primary focus:ring-primary" />
                   </div>
                   
-                  <Button type="submit" className="w-full bg-primary hover:bg-primary-dark text-white" disabled={isSubmitting}>
+                  <DiscoButton type="submit" className="w-full bg-primary hover:bg-primary-dark text-white" disabled={isSubmitting}>
                     {isSubmitting ? "Sending..." : "Send Message"}
-                  </Button>
+                  </DiscoButton>
                 </div>
               </form>}
           </div>

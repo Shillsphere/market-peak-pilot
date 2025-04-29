@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { DiscoButton } from "@/components/ui/disco-button";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -32,9 +33,9 @@ const Navbar = () => {
               </Button>
             </Link>
             <Link to="/sign-up">
-              <Button className="bg-black text-white hover:bg-gray-800 text-lg px-8 py-6">
+              <DiscoButton size="lg" className="text-lg">
                 Get Started
-              </Button>
+              </DiscoButton>
             </Link>
           </div>
 
@@ -63,9 +64,9 @@ const Navbar = () => {
                 </Button>
               </Link>
               <Link to="/sign-up">
-                <Button className="bg-black text-white hover:bg-gray-800 w-full">
+                <DiscoButton className="w-full">
                   Get Started
-                </Button>
+                </DiscoButton>
               </Link>
             </div>
           </div>
