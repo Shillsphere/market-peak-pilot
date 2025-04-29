@@ -1,11 +1,8 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { DiscoButton } from "./ui/disco-button";
-
 const HeroSection = () => {
-  return (
-    <section className="pt-40 pb-20 bg-[#FFFBF6]">
+  return <section className="pt-40 pb-20 bg-[#FFFBF6]">
       <div className="container px-6 mx-auto">
         <div className="flex flex-col items-center text-center max-w-6xl mx-auto">
           <h1 className="text-[4rem] font-serif font-bold leading-[1.1] tracking-tight text-center md:text-[transparente] text-inherit mx-[16px]">
@@ -17,20 +14,12 @@ const HeroSection = () => {
           </p>
           
           <div className="hero-illustration mt-10">
-            <img
-              src="/lovable-uploads/70f5f90e-6486-4267-a935-8c0cb679866d.png"
-              srcSet="/lovable-uploads/70f5f90e-6486-4267-a935-8c0cb679866d.png 1x, /lovable-uploads/70f5f90e-6486-4267-a935-8c0cb679866d.png 2x"
-              alt="Marketer relaxing while mktpk AI agents juggle multiple local marketing tasks"
-              loading="lazy"
-              className="w-full max-w-[960px] h-auto rounded-lg lg:max-w-[960px] md:max-w-[92vw] sm:max-w-[92vw]"
-            />
+            <img src="/lovable-uploads/70f5f90e-6486-4267-a935-8c0cb679866d.png" srcSet="/lovable-uploads/70f5f90e-6486-4267-a935-8c0cb679866d.png 1x, /lovable-uploads/70f5f90e-6486-4267-a935-8c0cb679866d.png 2x" alt="Marketer relaxing while mktpk AI agents juggle multiple local marketing tasks" loading="lazy" className="w-full max-w-[960px] h-auto rounded-lg lg:max-w-[960px] md:max-w-[92vw] sm:max-w-[92vw]" />
           </div>
           
           {/* New text and CTA button */}
           <div className="mt-12 text-center max-w-4xl">
-            <h2 className="text-3xl font-sans font-bold mb-4">
-              Liberate your time, cut costs, and scale faster with AI agents trained for your business.
-            </h2>
+            
             
             <Link to="/sign-up" className="inline-block mt-6">
               <DiscoButton variant="default" size="xl" className="font-sans px-10 py-6">
@@ -40,8 +29,6 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroSection;
