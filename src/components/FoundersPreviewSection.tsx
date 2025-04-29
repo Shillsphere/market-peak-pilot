@@ -18,14 +18,14 @@ const FoundersPreviewSection = () => {
           <div className="w-48 h-48 rounded-full overflow-hidden shadow-lg">
             <img 
               src="/lovable-uploads/6fa44a85-2488-40e1-a969-e1f63f5dd950.png" 
-              alt="Harry Thomas, CEO" 
+              alt="Parker Nuttall, CEO" 
               className="w-full h-full object-cover"
             />
           </div>
           <div className="w-48 h-48 rounded-full overflow-hidden shadow-lg">
             <img 
               src="/lovable-uploads/4a8112d9-5772-45ce-a60e-17406cf7f3fd.png" 
-              alt="Parker Wilson, CTO" 
+              alt="Harrison Clarkson, CMO" 
               className="w-full h-full object-cover"
             />
           </div>

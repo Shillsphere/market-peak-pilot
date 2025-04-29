@@ -1,7 +1,9 @@
+
 import React from "react";
 import Navbar from "@/components/Navbar";
 import { DiscoButton } from "@/components/ui/disco-button";
 import { Link } from "react-router-dom";
+
 const MeetTheFounders = () => {
   return <div className="min-h-screen bg-white">
       <Navbar />
@@ -25,21 +27,18 @@ const MeetTheFounders = () => {
               </div>
               <h3 className="text-2xl font-bold">Parker Nuttall</h3>
               <p className="text-lg text-gray-600 mb-4">CEO & Co-Founder</p>
-              <p className="text-center text-gray-700 leading-relaxed">Parker is an engineering leader with expertise in AI and computer science. He will be attending UW-Madison with plans to study computer science. He previously architected e-commerce stores, notably The Angler's Outfitter, where he automated the entire side of marketing operations, helping Angler's grow to over 6 figures in revenue. Parker is passionate about making advanced AI agents available for all businesses who are willing to evolve, with his main goal of having mktpk overtake the entire marketing workflow of businesses.</p>
+              <p className="text-center text-gray-700 leading-relaxed">Parker is an engineering leader with expertise in AI and computer science. He will be attending UW-Madison with plans to study computer science. He previously architected e-commerce stores, notably The Angler's Outfitter, where he automated the entire side of marketing operations, helping Angler's grow to over 6 figures in revenue. Parker is passionate about making advanced AI agents available for all businesses who are willing to evolve, with his main goal of having mktpk overtake the entire marketing workflow of businesses.</p>
             </div>
             
-            {/* Founder 2 */}
+            {/* Founder 2 - Updated to Harrison Clarkson */}
             <div className="flex flex-col items-center">
               <div className="rounded-lg overflow-hidden shadow-lg mb-6 w-64 h-64">
-                <img src="/lovable-uploads/4a8112d9-5772-45ce-a60e-17406cf7f3fd.png" alt="Parker Wilson, CTO & Co-Founder" className="w-full h-full object-cover" />
+                <img src="/lovable-uploads/4a8112d9-5772-45ce-a60e-17406cf7f3fd.png" alt="Harrison Clarkson, CMO & Co-Founder" className="w-full h-full object-cover" />
               </div>
-              <h3 className="text-2xl font-bold">Parker Wilson</h3>
-              <p className="text-lg text-gray-600 mb-4">CTO & Co-Founder</p>
+              <h3 className="text-2xl font-bold">Harrison Clarkson</h3>
+              <p className="text-lg text-gray-600 mb-4">CMO & Co-Founder</p>
               <p className="text-center text-gray-700 leading-relaxed">
-                Parker is an engineering leader with expertise in AI systems and distributed computing. 
-                He previously architected machine learning platforms at a Fortune 500 tech company. 
-                Parker is passionate about making advanced AI tools accessible to businesses of all sizes, 
-                especially those that have been traditionally overlooked by tech innovation.
+                Harrison is a sales‑driven marketing leader with a knack for turning conversations into growth. This fall he'll head to Pomona College—widely regarded as one of the premier colleges in the West with a 7% acceptance rate—where he will study Economics and Computer Science while playing linebacker for the Sagehens. Earlier, he founded Clear View Window Cleaning, led a six‑person crew, and scaled the business through relentless door‑to‑door hustle, forging the people‑first mindset that now drives Market Peak. Passionate about helping local owners thrive, Harrison believes every small business deserves big‑company marketing power, and his mission is to let Market Peak shoulder the entire marketing workload so entrepreneurs can stay focused on serving their communities.
               </p>
             </div>
             
@@ -147,4 +146,5 @@ const MeetTheFounders = () => {
       </footer>
     </div>;
 };
+
 export default MeetTheFounders;
