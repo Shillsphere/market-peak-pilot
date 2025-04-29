@@ -544,6 +544,10 @@ export type Database = {
           | { application_id: string; org_id?: string }
         Returns: Json
       }
+      auto_approve_user: {
+        Args: { email: string; business_name: string }
+        Returns: Json
+      }
       check_and_decrement_credits: {
         Args:
           | Record<PropertyKey, never>

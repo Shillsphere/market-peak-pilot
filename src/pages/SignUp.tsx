@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,19 +23,24 @@ const SignUp = () => {
     setLoading(true);
 
     try {
-      // First create the application without using auth
+      // First create the user application with pending status
       const { error: applicationError } = await supabase
         .from('user_applications')
         .insert([
-          { email, business_name: businessName }
+          { email, business_name: businessName, status: 'pending' }
         ]);
 
       if (applicationError) throw applicationError;
 
-      // Then sign up the user
+      // Then sign up the user (but they won't be approved yet)
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            business_name: businessName
+          }
+        }
       });
 
       if (error) throw error;
