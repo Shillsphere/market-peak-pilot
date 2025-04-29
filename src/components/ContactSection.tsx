@@ -1,11 +1,9 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, MessageCircle, Link } from "lucide-react";
-
 const ContactSection = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -13,33 +11,39 @@ const ContactSection = () => {
     company: "",
     message: ""
   });
-  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const {
+      name,
+      value
+    } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
-  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate form submission
     setTimeout(() => {
       console.log("Form submitted:", formData);
       setIsSubmitting(false);
       setIsSubmitted(true);
-      setFormData({ name: "", email: "", company: "", message: "" });
-      
+      setFormData({
+        name: "",
+        email: "",
+        company: "",
+        message: ""
+      });
+
       // Reset success message after 3 seconds
       setTimeout(() => setIsSubmitted(false), 3000);
     }, 1000);
   };
-  
-  return (
-    <section id="contact" className="section-padding bg-[#FFFBF6]">
+  return <section id="contact" className="section-padding bg-[#FFFBF6]">
       <div className="container px-6 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div>
@@ -55,7 +59,7 @@ const ContactSection = () => {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-medium">Email</h3>
-                  <p className="mt-1 text-gray-600">hello@marketpeak.ai</p>
+                  <p className="mt-1 text-gray-600">mktpk2@gmail.com</p>
                 </div>
               </div>
               
@@ -65,7 +69,7 @@ const ContactSection = () => {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-medium">Live Chat</h3>
-                  <p className="mt-1 text-gray-600">Available Monday-Friday, 9am-5pm PT</p>
+                  <p className="mt-1 text-gray-600">Available Monday-Saturday, 9am-5pm PT</p>
                 </div>
               </div>
               
@@ -76,7 +80,7 @@ const ContactSection = () => {
                 <div className="ml-4">
                   <h3 className="text-lg font-medium">Follow Us</h3>
                   <div className="mt-1 flex space-x-4">
-                    <a href="#" className="text-gray-600 hover:text-primary">Twitter</a>
+                    <a href="#" className="text-gray-600 hover:text-primary">X</a>
                     <a href="#" className="text-gray-600 hover:text-primary">LinkedIn</a>
                     <a href="#" className="text-gray-600 hover:text-primary">Facebook</a>
                   </div>
@@ -88,80 +92,38 @@ const ContactSection = () => {
           <div className="bg-white rounded-lg p-8 shadow-md border border-gray-100">
             <h3 className="text-xl font-semibold mb-6">Send us a message</h3>
             
-            {isSubmitted ? (
-              <div className="bg-green-50 border border-green-200 rounded-md p-4 text-center">
+            {isSubmitted ? <div className="bg-green-50 border border-green-200 rounded-md p-4 text-center">
                 <p className="text-green-700">Thank you for your message! We'll be in touch soon.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
+              </div> : <form onSubmit={handleSubmit}>
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="name" className="block text-gray-700">Name</Label>
-                    <Input 
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Your name"
-                      required
-                      className="mt-1 border-gray-200 focus:border-primary focus:ring-primary"
-                    />
+                    <Input id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Your name" required className="mt-1 border-gray-200 focus:border-primary focus:ring-primary" />
                   </div>
                   
                   <div>
                     <Label htmlFor="email" className="block text-gray-700">Email</Label>
-                    <Input 
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="you@example.com"
-                      required
-                      className="mt-1 border-gray-200 focus:border-primary focus:ring-primary"
-                    />
+                    <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required className="mt-1 border-gray-200 focus:border-primary focus:ring-primary" />
                   </div>
                   
                   <div>
                     <Label htmlFor="company" className="block text-gray-700">Company</Label>
-                    <Input 
-                      id="company"
-                      name="company"
-                      value={formData.company}
-                      onChange={handleChange}
-                      placeholder="Your company"
-                      className="mt-1 border-gray-200 focus:border-primary focus:ring-primary"
-                    />
+                    <Input id="company" name="company" value={formData.company} onChange={handleChange} placeholder="Your company" className="mt-1 border-gray-200 focus:border-primary focus:ring-primary" />
                   </div>
                   
                   <div>
                     <Label htmlFor="message" className="block text-gray-700">Message</Label>
-                    <Textarea 
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      placeholder="How can we help you?"
-                      required
-                      className="mt-1 min-h-[120px] border-gray-200 focus:border-primary focus:ring-primary"
-                    />
+                    <Textarea id="message" name="message" value={formData.message} onChange={handleChange} placeholder="How can we help you?" required className="mt-1 min-h-[120px] border-gray-200 focus:border-primary focus:ring-primary" />
                   </div>
                   
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-primary hover:bg-primary-dark text-white"
-                    disabled={isSubmitting}
-                  >
+                  <Button type="submit" className="w-full bg-primary hover:bg-primary-dark text-white" disabled={isSubmitting}>
                     {isSubmitting ? "Sending..." : "Send Message"}
                   </Button>
                 </div>
-              </form>
-            )}
+              </form>}
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default ContactSection;
