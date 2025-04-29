@@ -4,20 +4,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const discoButtonVariants = cva(
-  "relative overflow-hidden rounded-lg text-sm font-medium transition-colors will-change-transform focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-offset-black focus:ring-primary/50 disabled:opacity-50",
+  "relative inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none",
   {
     variants: {
       variant: {
-        default: "bg-black",
-        primary: "bg-primary",
-        secondary: "bg-secondary",
-        outline: "bg-transparent border border-primary",
+        default: "bg-black text-white hover:bg-black/80",
+        primary: "bg-primary text-white hover:bg-primary/80",
+        secondary: "bg-secondary text-white hover:bg-secondary/80",
+        outline: "bg-transparent border border-primary text-primary hover:bg-primary/10",
       },
       size: {
-        default: "px-8 py-3",
-        sm: "px-4 py-2",
-        lg: "px-10 py-4",
-        xl: "px-20 py-6",
+        default: "h-10 py-2 px-4",
+        sm: "h-9 px-2 rounded-md",
+        lg: "h-11 px-8 rounded-md",
+        xl: "h-12 px-10 rounded-md",
       },
     },
     defaultVariants: {
@@ -35,20 +35,6 @@ export interface DiscoButtonProps
 
 const DiscoButton = React.forwardRef<HTMLButtonElement, DiscoButtonProps>(
   ({ className, variant, size, children, disabled, ...props }, ref) => {
-    const bgColor = variant === 'primary' 
-      ? 'bg-primary' 
-      : variant === 'secondary' 
-        ? 'bg-secondary' 
-        : variant === 'outline'
-          ? 'bg-transparent'
-          : 'bg-black';
-          
-    const textColor = variant === 'outline'
-      ? 'text-primary'
-      : variant === 'default' || variant === 'primary' || variant === 'secondary'
-        ? 'text-white'
-        : 'text-white';
-
     return (
       <button
         className={cn(discoButtonVariants({ variant, size, className }))}
@@ -56,15 +42,7 @@ const DiscoButton = React.forwardRef<HTMLButtonElement, DiscoButtonProps>(
         disabled={disabled}
         {...props}
       >
-        <span className={`absolute inset-px z-10 grid place-items-center rounded-lg ${bgColor} ${disabled ? '' : 'bg-gradient-to-t from-neutral-800'} ${textColor}`}>
-          {children}
-        </span>
-        {!disabled && (
-          <span 
-            aria-hidden 
-            className="absolute inset-0 z-0 scale-x-[2.0] blur before:absolute before:inset-0 before:top-1/2 before:aspect-square before:animate-disco before:bg-gradient-conic before:from-purple-700 before:via-primary before:to-amber-400" 
-          />
-        )}
+        {children}
       </button>
     )
   }
