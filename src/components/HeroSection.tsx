@@ -1,5 +1,7 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
+import { DiscoButton } from "./ui/disco-button";
 
 const HeroSection = () => {
   return (
@@ -22,6 +24,19 @@ const HeroSection = () => {
               loading="lazy"
               className="w-full max-w-[960px] h-auto rounded-lg lg:max-w-[960px] md:max-w-[92vw] sm:max-w-[92vw]"
             />
+          </div>
+          
+          {/* New text and CTA button */}
+          <div className="mt-12 text-center max-w-4xl">
+            <h2 className="text-3xl font-sans font-bold mb-4">
+              Liberate your time, cut costs, and scale faster with AI agents trained for your business.
+            </h2>
+            
+            <Link to="/sign-up" className="inline-block mt-6">
+              <DiscoButton variant="default" size="xl" className="font-sans px-10 py-6">
+                Automate My Marketing
+              </DiscoButton>
+            </Link>
           </div>
         </div>
       </div>
