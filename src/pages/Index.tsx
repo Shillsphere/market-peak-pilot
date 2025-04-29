@@ -7,6 +7,7 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import PricingSection from "@/components/PricingSection";
 import ContactSection from "@/components/ContactSection";
 import FoundersPreviewSection from "@/components/FoundersPreviewSection";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
