@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { useState } from "react";
@@ -19,7 +20,9 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-12">
             <a href="#features" className="text-gray-700 hover:text-gray-900 text-lg">Features</a>
-            <a href="#how-it-works" className="text-gray-700 hover:text-gray-900 text-lg">How It Works</a>
+            <Link to="/how-it-works" className="text-white bg-primary hover:bg-primary-dark px-6 py-3 rounded-md text-sm font-medium transition-colors">
+              How It Works
+            </Link>
             <a href="#testimonials" className="text-gray-700 hover:text-gray-900 text-lg">Testimonials</a>
             <a href="#pricing" className="text-gray-700 hover:text-gray-900 text-lg">Pricing</a>
             <a href="#contact" className="text-gray-700 hover:text-gray-900 text-lg">Contact</a>
@@ -48,7 +51,9 @@ const Navbar = () => {
           <div className="md:hidden absolute top-24 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
             <div className="flex flex-col px-6 py-4 space-y-4">
               <a href="#features" className="text-gray-700 hover:text-gray-900">Features</a>
-              <a href="#how-it-works" className="text-gray-700 hover:text-gray-900">How It Works</a>
+              <Link to="/how-it-works" className="text-white bg-primary hover:bg-primary-dark px-4 py-2 rounded-md text-sm font-medium transition-colors text-center">
+                How It Works
+              </Link>
               <a href="#testimonials" className="text-gray-700 hover:text-gray-900">Testimonials</a>
               <a href="#pricing" className="text-gray-700 hover:text-gray-900">Pricing</a>
               <a href="#contact" className="text-gray-700 hover:text-gray-900">Contact</a>
