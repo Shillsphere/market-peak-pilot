@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { DiscoButton } from "@/components/ui/disco-button";
 import { Menu } from "lucide-react";
@@ -63,14 +64,14 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           <div>
             <Link to="/">
-              <img src="/lovable-uploads/8b96431b-d832-42d1-aaf7-1caaf5e13c2e.png" alt="mktpk logo" className="h-12 w-auto object-contain" />
+              <img src="/lovable-uploads/8b96431b-d832-42d1-aaf7-1caaf5e13c2e.png" alt="mktpk logo" className="h-20 w-auto object-contain" />
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-12">
             <a href="#features" className={`text-lg ${isActive("features")}`}>Features</a>
-            <Link to="/how-it-works" className={`text-lg bg-black text-white px-4 py-2 rounded-md`}>
+            <Link to="/how-it-works" className={`text-lg bg-black text-white px-4 py-2 rounded-md whitespace-nowrap`}>
               How It Works
             </Link>
             <a href="#testimonials" className={`text-lg ${isActive("testimonials")}`}>Testimonials</a>
@@ -104,7 +105,7 @@ const Navbar = () => {
           <div className="md:hidden absolute top-24 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
             <div className="flex flex-col px-6 py-4 space-y-4">
               <a href="#features" className={isActive("features")}>Features</a>
-              <Link to="/how-it-works" className="bg-black text-white px-3 py-2 rounded-md">
+              <Link to="/how-it-works" className="bg-black text-white px-3 py-2 rounded-md text-center">
                 How It Works
               </Link>
               <a href="#testimonials" className={isActive("testimonials")}>Testimonials</a>
