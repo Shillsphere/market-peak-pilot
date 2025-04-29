@@ -56,7 +56,7 @@ const DiscoButton = React.forwardRef<HTMLButtonElement, DiscoButtonProps>(
         disabled={disabled}
         {...props}
       >
-        <span className={`absolute inset-px z-10 grid place-items-center rounded-lg ${bgColor} ${disabled ? '' : 'bg-gradient-to-t from-neutral-800'} ${textColor}`}>
+        <span className={`absolute inset-px z-10 grid place-items-center rounded-lg ${bgColor} ${disabled ? '' : 'bg-gradient-to-t from-neutral-800'} ${textColor} whitespace-nowrap px-4`}>
           {children}
         </span>
         {!disabled && (
