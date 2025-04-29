@@ -40,7 +40,7 @@ const SignUp = () => {
       if (error) throw error;
 
       toast({
-        title: "Application submitted successfully",
+        title: "Waitlist submission successful",
         description: "Please wait for admin approval before signing in.",
       });
 
@@ -68,7 +68,7 @@ const SignUp = () => {
             />
           </Link>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Apply for an Account
+            Join the Waitlist
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Already have an account?{" "}
@@ -147,7 +147,7 @@ const SignUp = () => {
           </div>
 
           <Button className="w-full" type="submit" disabled={loading}>
-            {loading ? "Submitting application..." : "Submit application"}
+            {loading ? "Submitting..." : "Join the Waitlist"}
           </Button>
         </form>
       </div>
