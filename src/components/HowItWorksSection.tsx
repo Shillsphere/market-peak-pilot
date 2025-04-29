@@ -1,34 +1,26 @@
 
-const steps = [
+import { Button } from "@/components/ui/button";
+
+const workflows = [
   {
-    number: "01",
-    title: "Input Business Details",
-    description: "Tell us about your business, target audience, and marketing goals. Our AI analyzes your information to create a personalized strategy."
+    title: "How Competitor Deep Research Works",
+    image: "/lovable-uploads/28f1f2ec-f8ed-4af2-8815-b735ab3655da.png",
+    alt: "Competitor research workflow showing steps: Add Rivals, Enter Goal, Crawl Google, Crawl Yelp, Insights Board, and Gap Detection"
   },
   {
-    number: "02",
-    title: "Competitor Research",
-    description: "Our system automatically identifies and analyzes top-performing local competitors, extracting valuable insights to inform your strategy."
+    title: "How Content Creation Works",
+    image: "/lovable-uploads/e581a9ae-1779-4c6e-b674-f148c99abe6b.png",
+    alt: "Content creation workflow showing steps: Enter Prompt, Generate Ideas, Write Content, Visual Design, and Export to Distribution"
   },
   {
-    number: "03",
-    title: "Content Generation",
-    description: "AI creates high-quality, hyper-local content including posts, captions, and graphics all tailored to your brand voice and audience."
+    title: "How mktpk Content Distribution Works",
+    image: "/lovable-uploads/8a684c6f-e0a8-4888-84bf-e91e357d32b8.png",
+    alt: "Content distribution workflow showing steps: Paste Content, Pick Channels, Schedule Send, Hyperpush Blast, Track Buzz, and Auto Boost"
   },
   {
-    number: "04",
-    title: "Smart Scheduling",
-    description: "Your content is automatically scheduled to post at optimal times when your local audience is most active and engaged."
-  },
-  {
-    number: "05",
-    title: "Wide Distribution",
-    description: "Content is distributed across multiple platforms and relevant local groups to maximize reach and engagement."
-  },
-  {
-    number: "06",
-    title: "Analytics & Optimization",
-    description: "Track performance with unified metrics and receive AI-powered recommendations to continuously improve your marketing strategy."
+    title: "How mktpk General AI Agent Works",
+    image: "/lovable-uploads/e0f970a4-0873-415a-a07e-f01329d659a1.png",
+    alt: "General AI agent workflow showing steps: Ask Anything, Smart Reasoning, Toolbox Calls, Fact Fusion, Trend Highlights, and Clear Answers"
   }
 ];
 
@@ -39,23 +31,25 @@ const HowItWorksSection = () => {
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold">How It Works</h2>
           <p className="mt-4 text-gray-600">
-            Our streamlined process makes marketing automation simple and effective for your business.
+            Our streamlined processes make marketing automation simple and effective for your business.
           </p>
         </div>
         
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12">
-          {steps.map((step, index) => (
+        <div className="mt-16 space-y-20">
+          {workflows.map((workflow, index) => (
             <div 
               key={index} 
-              className="flex flex-col animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 0.2}s` }}
             >
-              <div className="flex items-center mb-4">
-                <span className="text-4xl font-serif font-bold text-primary/20">{step.number}</span>
-                <span className="ml-3 h-px flex-1 bg-primary/10"></span>
+              <h3 className="text-2xl md:text-3xl font-bold text-center mb-8">{workflow.title}</h3>
+              <div className="flex justify-center">
+                <img 
+                  src={workflow.image} 
+                  alt={workflow.alt} 
+                  className="max-w-full rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+                />
               </div>
-              <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-              <p className="text-gray-600">{step.description}</p>
             </div>
           ))}
         </div>
@@ -67,9 +61,9 @@ const HowItWorksSection = () => {
               <p className="text-gray-600 mb-6">
                 Get started today and see how Market Peak can transform your business's local marketing strategy.
               </p>
-              <button className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-md text-sm font-medium transition-colors">
+              <Button className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-md text-sm font-medium transition-colors">
                 Get Started Now
-              </button>
+              </Button>
             </div>
             <div className="md:w-1/2 mt-8 md:mt-0 flex justify-center">
               <img 
