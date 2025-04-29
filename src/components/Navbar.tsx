@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { DiscoButton } from "@/components/ui/disco-button";
 import { Menu } from "lucide-react";
@@ -16,18 +17,18 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-12">
-            <a href="#features" className="text-gray-700 hover:text-gray-900 text-lg">Features</a>
+            <a href="#features" className="text-gray-700 hover:text-gray-900 text-lg font-serif">Features</a>
             <Link to="/how-it-works">
               <DiscoButton variant="default" size="xl" className="text-lg px-8 py-6 min-w-32">
                 How It Works
               </DiscoButton>
             </Link>
-            <a href="#testimonials" className="text-gray-700 hover:text-gray-900 text-lg">Testimonials</a>
-            <a href="#contact" className="text-gray-700 hover:text-gray-900 text-lg">Contact</a>
-            <Link to="/meet-the-founders" className="text-gray-700 hover:text-gray-900 text-lg">Meet the Founders</Link>
-            <a href="#pricing" className="text-gray-700 hover:text-gray-900 text-lg">Pricing</a>
+            <a href="#testimonials" className="text-gray-700 hover:text-gray-900 text-lg font-serif">Testimonials</a>
+            <a href="#contact" className="text-gray-700 hover:text-gray-900 text-lg font-serif">Contact</a>
+            <Link to="/meet-the-founders" className="text-gray-700 hover:text-gray-900 text-lg font-serif">Meet the Founders</Link>
+            <a href="#pricing" className="text-gray-700 hover:text-gray-900 text-lg font-serif">Pricing</a>
             <Link to="/sign-in">
-              <Button variant="outline" className="text-lg px-8 py-6">
+              <Button variant="outline" className="text-lg px-8 py-6 font-serif">
                 Sign In
               </Button>
             </Link>
@@ -47,18 +48,18 @@ const Navbar = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && <div className="md:hidden absolute top-24 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
             <div className="flex flex-col px-6 py-4 space-y-4">
-              <a href="#features" className="text-gray-700 hover:text-gray-900">Features</a>
+              <a href="#features" className="text-gray-700 hover:text-gray-900 font-serif">Features</a>
               <Link to="/how-it-works">
                 <DiscoButton variant="default" size="lg" className="w-full text-lg">
                   How It Works
                 </DiscoButton>
               </Link>
-              <a href="#testimonials" className="text-gray-700 hover:text-gray-900">Testimonials</a>
-              <a href="#contact" className="text-gray-700 hover:text-gray-900">Contact</a>
-              <Link to="/meet-the-founders" className="text-gray-700 hover:text-gray-900">Meet the Founders</Link>
-              <a href="#pricing" className="text-gray-700 hover:text-gray-900">Pricing</a>
+              <a href="#testimonials" className="text-gray-700 hover:text-gray-900 font-serif">Testimonials</a>
+              <a href="#contact" className="text-gray-700 hover:text-gray-900 font-serif">Contact</a>
+              <Link to="/meet-the-founders" className="text-gray-700 hover:text-gray-900 font-serif">Meet the Founders</Link>
+              <a href="#pricing" className="text-gray-700 hover:text-gray-900 font-serif">Pricing</a>
               <Link to="/sign-in">
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full font-serif">
                   Sign In
                 </Button>
               </Link>

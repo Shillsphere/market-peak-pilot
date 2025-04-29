@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { DiscoButton } from "./ui/disco-button";
@@ -22,7 +23,7 @@ const HeroSection = () => {
             
             
             <Link to="/sign-up" className="inline-block mt-6">
-              <DiscoButton variant="default" size="xl" className="font-sans px-10 py-6">
+              <DiscoButton variant="default" size="xl" className="font-serif px-10 py-6">
                 Automate My Marketing
               </DiscoButton>
             </Link>
