@@ -9,42 +9,42 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   return (
-    <nav className="bg-white py-4 px-6 md:px-10 fixed w-full z-50 shadow-sm">
+    <nav className="bg-gradient-to-r from-white to-gray-50 py-3 px-6 md:px-10 fixed w-full z-50 shadow-sm">
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
           <div>
             <Link to="/">
               <img 
-                src="/lovable-uploads/8b96431b-d832-42d1-aaf7-1caaf5e13c2e.png" 
+                src="/lovable-uploads/e0f970a4-0873-415a-a07e-f01329d659a1.png" 
                 alt="mktpk logo" 
-                className="h-12 object-fill" 
+                className="h-8 object-contain" 
               />
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-700 hover:text-gray-900 font-medium">Features</a>
-            <Link to="/how-it-works" className="text-gray-700 hover:text-gray-900 font-medium">
+          <div className="hidden md:flex items-center justify-center space-x-10">
+            <a href="#features" className="text-gray-700 hover:text-primary font-medium text-sm">Features</a>
+            <Link to="/how-it-works" className="text-gray-700 hover:text-primary font-medium text-sm">
               How It Works
             </Link>
-            <a href="#testimonials" className="text-gray-700 hover:text-gray-900 font-medium">Testimonials</a>
-            <a href="#contact" className="text-gray-700 hover:text-gray-900 font-medium">Contact</a>
-            <Link to="/meet-the-founders" className="text-gray-700 hover:text-gray-900 font-medium">Meet the Founders</Link>
-            <a href="#pricing" className="text-gray-700 hover:text-gray-900 font-medium">Pricing</a>
+            <a href="#testimonials" className="text-gray-700 hover:text-primary font-medium text-sm">Testimonials</a>
+            <a href="#contact" className="text-gray-700 hover:text-primary font-medium text-sm">Contact</a>
+            <Link to="/meet-the-founders" className="text-gray-700 hover:text-primary font-medium text-sm">Meet the Founders</Link>
+            <a href="#pricing" className="text-gray-700 hover:text-primary font-medium text-sm">Pricing</a>
           </div>
 
           {/* Sign In and Get Started buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <Link to="/sign-in">
-              <Button variant="outline" className="font-medium">
+              <Button variant="outline" className="font-medium text-gray-700 border-gray-300">
                 Sign In
               </Button>
             </Link>
             <Link to="/sign-up">
-              <Button className="bg-black text-white hover:bg-gray-800 rounded-full px-6 font-medium">
+              <DiscoButton className="bg-primary text-white hover:bg-primary/90 rounded-full px-6 py-2 font-medium">
                 Get Started
-              </Button>
+              </DiscoButton>
             </Link>
           </div>
 
@@ -58,25 +58,25 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-20 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
             <div className="flex flex-col px-6 py-4 space-y-4">
-              <a href="#features" className="text-gray-700 hover:text-gray-900">Features</a>
-              <Link to="/how-it-works" className="text-gray-700 hover:text-gray-900">
+              <a href="#features" className="text-gray-700 hover:text-primary">Features</a>
+              <Link to="/how-it-works" className="text-gray-700 hover:text-primary">
                 How It Works
               </Link>
-              <a href="#testimonials" className="text-gray-700 hover:text-gray-900">Testimonials</a>
-              <a href="#contact" className="text-gray-700 hover:text-gray-900">Contact</a>
-              <Link to="/meet-the-founders" className="text-gray-700 hover:text-gray-900">Meet the Founders</Link>
-              <a href="#pricing" className="text-gray-700 hover:text-gray-900">Pricing</a>
+              <a href="#testimonials" className="text-gray-700 hover:text-primary">Testimonials</a>
+              <a href="#contact" className="text-gray-700 hover:text-primary">Contact</a>
+              <Link to="/meet-the-founders" className="text-gray-700 hover:text-primary">Meet the Founders</Link>
+              <a href="#pricing" className="text-gray-700 hover:text-primary">Pricing</a>
               <Link to="/sign-in">
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full text-gray-700 border-gray-300">
                   Sign In
                 </Button>
               </Link>
               <Link to="/sign-up">
-                <Button className="w-full bg-black text-white hover:bg-gray-800">
+                <DiscoButton className="w-full bg-primary text-white hover:bg-primary/90">
                   Get Started
-                </Button>
+                </DiscoButton>
               </Link>
             </div>
           </div>
