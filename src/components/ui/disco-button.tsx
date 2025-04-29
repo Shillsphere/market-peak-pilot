@@ -9,15 +9,15 @@ const discoButtonVariants = cva(
     variants: {
       variant: {
         default: "bg-black text-white hover:bg-black/80",
-        primary: "bg-primary text-white hover:bg-primary/80",
-        secondary: "bg-secondary text-white hover:bg-secondary/80",
+        primary: "bg-primary text-white hover:bg-primary/90",
+        secondary: "bg-secondary text-white hover:bg-secondary/90",
         outline: "bg-transparent border border-primary text-primary hover:bg-primary/10",
       },
       size: {
         default: "h-10 py-2 px-4",
         sm: "h-9 px-2 rounded-md",
         lg: "h-11 px-8 rounded-md",
-        xl: "h-12 px-10 rounded-md",
+        xl: "h-12 px-10 rounded-md text-lg font-sans",
       },
     },
     defaultVariants: {
