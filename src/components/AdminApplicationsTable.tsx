@@ -56,10 +56,10 @@ export const AdminApplicationsTable = () => {
 
   const handleDeny = async (applicationId: string) => {
     try {
-      // Update application status to denied
+      // Update application status to rejected
       const { error } = await supabase
         .from('user_applications')
-        .update({ status: 'denied' })
+        .update({ status: 'rejected' })
         .eq('id', applicationId);
 
       if (error) throw error;
@@ -108,8 +108,8 @@ export const AdminApplicationsTable = () => {
                 <TableCell>
                   <Badge 
                     variant={
-                      app.status === 'approved' ? 'success' :
-                      app.status === 'denied' ? 'destructive' :
+                      app.status === 'approved' ? 'default' :
+                      app.status === 'rejected' ? 'destructive' :
                       'outline'
                     }
                   >
