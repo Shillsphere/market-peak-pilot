@@ -3,14 +3,16 @@ import { DiscoButton } from "@/components/ui/disco-button";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
   return <nav className="bg-gradient-to-r from-white to-gray-50 py-3 px-6 md:px-10 fixed w-full z-50 shadow-sm">
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
           <div>
             <Link to="/">
-              <img alt="mktpk logo" src="/lovable-uploads/0b91c1cf-91f5-4d73-9119-5b20bdf4c54c.png" className="h-8 object-fill" />
+              <img alt="mktpk logo" src="/lovable-uploads/0b91c1cf-91f5-4d73-9119-5b20bdf4c54c.png" className="h-12 object-fill" />
             </Link>
           </div>
 
