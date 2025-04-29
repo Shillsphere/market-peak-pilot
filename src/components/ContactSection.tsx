@@ -1,10 +1,14 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, MessageCircle, Link } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
 const ContactSection = () => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -13,6 +17,7 @@ const ContactSection = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const {
       name,
@@ -23,26 +28,45 @@ const ContactSection = () => {
       [name]: value
     }));
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    setTimeout(() => {
-      console.log("Form submitted:", formData);
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-      setFormData({
-        name: "",
-        email: "",
-        company: "",
-        message: ""
-      });
+    // Open Facebook Messenger with pre-filled message
+    const messengerUrl = "https://m.me/marketpeak";
+    const message = `Name: ${formData.name}
+Email: ${formData.email}
+Company: ${formData.company}
+Message: ${formData.message}`;
 
-      // Reset success message after 3 seconds
-      setTimeout(() => setIsSubmitted(false), 3000);
-    }, 1000);
+    // Log the info
+    console.log("Form submitted:", formData);
+    console.log("Redirecting to Facebook Messenger");
+
+    // Open Facebook Messenger in a new tab
+    window.open(`${messengerUrl}?text=${encodeURIComponent(message)}`, '_blank');
+
+    // Reset the form and show success message
+    setIsSubmitting(false);
+    setIsSubmitted(true);
+    setFormData({
+      name: "",
+      email: "",
+      company: "",
+      message: ""
+    });
+
+    // Show toast notification
+    toast({
+      title: "Message sent",
+      description: "You've been redirected to Facebook Messenger to complete your message.",
+    });
+
+    // Reset success message after 3 seconds
+    setTimeout(() => setIsSubmitted(false), 3000);
   };
+
   return <section id="contact" className="section-padding bg-[#FFFBF6]">
       <div className="container px-6 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -93,7 +117,7 @@ const ContactSection = () => {
             <h3 className="text-xl font-semibold mb-6">Send us a message</h3>
             
             {isSubmitted ? <div className="bg-green-50 border border-green-200 rounded-md p-4 text-center">
-                <p className="text-green-700">Thank you for your message! We'll be in touch soon.</p>
+                <p className="text-green-700">Thank you for your message! We'll be in touch soon via Facebook Messenger.</p>
               </div> : <form onSubmit={handleSubmit}>
                 <div className="space-y-4">
                   <div>
@@ -117,7 +141,7 @@ const ContactSection = () => {
                   </div>
                   
                   <Button type="submit" className="w-full bg-primary hover:bg-primary-dark text-white" disabled={isSubmitting}>
-                    {isSubmitting ? "Sending..." : "Send Message"}
+                    {isSubmitting ? "Sending..." : "Send via Facebook Messenger"}
                   </Button>
                 </div>
               </form>}
