@@ -1,6 +1,4 @@
 
-import WorkflowTabs from './WorkflowTabs';
-
 const steps = [
   {
     number: "01",
@@ -61,9 +59,6 @@ const HowItWorksSection = () => {
             </div>
           ))}
         </div>
-        
-        {/* Workflow Diagrams - New Component */}
-        <WorkflowTabs />
         
         <div className="mt-20 bg-white border border-gray-100 rounded-lg p-8 shadow-md max-w-3xl mx-auto">
           <div className="flex flex-col md:flex-row items-center">
