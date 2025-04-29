@@ -27,9 +27,9 @@ const Navbar = () => {
               </DiscoButton>
             </Link>
             <a href="#testimonials" className="text-gray-700 hover:text-gray-900 text-lg">Testimonials</a>
+            <a href="#pricing" className="text-gray-700 hover:text-gray-900 text-lg">Pricing</a>
             <a href="#contact" className="text-gray-700 hover:text-gray-900 text-lg">Contact</a>
             <Link to="/meet-the-founders" className="text-gray-700 hover:text-gray-900 text-lg">Meet the Founders</Link>
-            <a href="#pricing" className="text-gray-700 hover:text-gray-900 text-lg">Pricing</a>
             <Link to="/sign-in">
               <Button variant="outline" className="text-lg px-8 py-6">
                 Sign In
@@ -61,9 +61,9 @@ const Navbar = () => {
                 </DiscoButton>
               </Link>
               <a href="#testimonials" className="text-gray-700 hover:text-gray-900">Testimonials</a>
+              <a href="#pricing" className="text-gray-700 hover:text-gray-900">Pricing</a>
               <a href="#contact" className="text-gray-700 hover:text-gray-900">Contact</a>
               <Link to="/meet-the-founders" className="text-gray-700 hover:text-gray-900">Meet the Founders</Link>
-              <a href="#pricing" className="text-gray-700 hover:text-gray-900">Pricing</a>
               <Link to="/sign-in">
                 <Button variant="outline" className="w-full">
                   Sign In
