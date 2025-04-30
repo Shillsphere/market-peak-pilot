@@ -17,3 +17,5 @@
 # ... existing ignores ... 
 # Build output
 dist/
+
+.vscode/
