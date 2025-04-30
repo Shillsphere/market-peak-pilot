@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { DiscoButton } from "@/components/ui/disco-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -22,25 +23,30 @@ const SignUp = () => {
     setLoading(true);
 
     try {
-      // First create the application without using auth
+      // First create the user application with pending status
       const { error: applicationError } = await supabase
         .from('user_applications')
         .insert([
-          { email, business_name: businessName }
+          { email, business_name: businessName, status: 'pending' }
         ]);
 
       if (applicationError) throw applicationError;
 
-      // Then sign up the user
+      // Then sign up the user (but they won't be approved yet)
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            business_name: businessName
+          }
+        }
       });
 
       if (error) throw error;
 
       toast({
-        title: "Application submitted successfully",
+        title: "Waitlist submission successful",
         description: "Please wait for admin approval before signing in.",
       });
 
@@ -68,7 +74,7 @@ const SignUp = () => {
             />
           </Link>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Apply for an Account
+            Join the Waitlist
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Already have an account?{" "}
@@ -146,9 +152,9 @@ const SignUp = () => {
             </div>
           </div>
 
-          <Button className="w-full" type="submit" disabled={loading}>
-            {loading ? "Submitting application..." : "Submit application"}
-          </Button>
+          <DiscoButton className="w-full" type="submit" disabled={loading}>
+            {loading ? "Submitting..." : "Join the Waitlist"}
+          </DiscoButton>
         </form>
       </div>
     </div>

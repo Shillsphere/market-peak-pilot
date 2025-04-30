@@ -11,11 +11,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 export const AdminApplicationsTable = () => {
   const { toast } = useToast();
 
-  const { data: applications, refetch } = useQuery({
+  const { data: applications, refetch, isLoading } = useQuery({
     queryKey: ['applications'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -30,6 +31,7 @@ export const AdminApplicationsTable = () => {
 
   const handleApprove = async (applicationId: string) => {
     try {
+      // Call the approve_user_application function
       const { data, error } = await supabase.rpc(
         'approve_user_application',
         { application_id: applicationId }
@@ -40,6 +42,31 @@ export const AdminApplicationsTable = () => {
       toast({
         title: "Success",
         description: "Application approved successfully",
+      });
+
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeny = async (applicationId: string) => {
+    try {
+      // Update application status to rejected
+      const { error } = await supabase
+        .from('user_applications')
+        .update({ status: 'rejected' })
+        .eq('id', applicationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Application denied",
       });
 
       refetch();
@@ -65,24 +92,56 @@ export const AdminApplicationsTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {applications?.map((app) => (
-            <TableRow key={app.id}>
-              <TableCell>{app.business_name}</TableCell>
-              <TableCell>{app.email}</TableCell>
-              <TableCell>{app.status}</TableCell>
-              <TableCell>{new Date(app.created_at).toLocaleDateString()}</TableCell>
-              <TableCell>
-                {app.status === 'pending' && (
-                  <Button
-                    onClick={() => handleApprove(app.id)}
-                    size="sm"
-                  >
-                    Approve
-                  </Button>
-                )}
-              </TableCell>
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-4">Loading applications...</TableCell>
             </TableRow>
-          ))}
+          ) : applications?.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-4">No applications found</TableCell>
+            </TableRow>
+          ) : (
+            applications?.map((app) => (
+              <TableRow key={app.id}>
+                <TableCell>{app.business_name}</TableCell>
+                <TableCell>{app.email}</TableCell>
+                <TableCell>
+                  <Badge 
+                    variant={
+                      app.status === 'approved' ? 'default' :
+                      app.status === 'rejected' ? 'destructive' :
+                      'outline'
+                    }
+                  >
+                    {app.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>{new Date(app.created_at).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    {app.status === 'pending' && (
+                      <>
+                        <Button
+                          onClick={() => handleApprove(app.id)}
+                          size="sm"
+                          variant="default"
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          onClick={() => handleDeny(app.id)}
+                          size="sm"
+                          variant="destructive"
+                        >
+                          Deny
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

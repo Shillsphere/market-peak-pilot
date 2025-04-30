@@ -103,3 +103,34 @@
 .section-padding {
   @apply py-16 md:py-24;
 }
+
+/* Animation classes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Color transitions */
+.color-transition {
+  @apply transition-colors duration-300;
+}
+
+/* Card styling */
+.card-with-shadow {
+  @apply bg-white border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition-all duration-300;
+}
+
+/* Hero illustration */
+.hero-illustration img {
+  @apply transition-transform duration-500 hover:scale-[1.02];
+}

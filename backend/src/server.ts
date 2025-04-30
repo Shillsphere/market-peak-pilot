@@ -1,16 +1,14 @@
-import "dotenv/config";
-// Force environment variables to be loaded and set
-if (!process.env.SUPABASE_JWT_SECRET) {
-  console.log("SUPABASE_JWT_SECRET not found in process.env, setting manually as fallback");
-  process.env.SUPABASE_JWT_SECRET = "sHC4q65fKLPu2vGxAr0fDlnOQuKosDO8/VC+lJEVmxt8O0tR6f1MfcAVkdqfByVDPdUHcJuL5bMAmCJGDOSliw==";
-}
-console.log("SUPABASE_JWT_SECRET in server.ts:", process.env.SUPABASE_JWT_SECRET ? "Loaded" : "MISSING!");
+// Resolve dotenv conflict: Remove explicit loading and fallback, rely on --env-file
+// Keep express import
 import express, { Request, Response, NextFunction, RequestHandler } from 'express';
 import { supabase } from './lib/supabase.js';
-import queue from './queue.js';
+import { generateQueue } from './queue.js';
 import { openai } from './lib/openai.js';
 import { z } from 'zod';
-import researchRoutes from './routes/researchRoutes.js'; // Use .js for ESM
+// Resolve routes conflict: Keep imports from both branches
+import researchRoutes from './routes/researchRoutes.js'; // From local
+import credentialsRoutes from './routes/credentialsRoutes.js'; // From remote
+import { testEncryptionKey } from './lib/encryption.js'; // From remote
 
 // Define interfaces for request and response bodies for clarity
 interface CreatePostRequestBody {
@@ -120,6 +118,19 @@ const port = process.env.PORT || 4000; // Use environment variable or default
 
 app.use(express.json()); // Middleware to parse JSON bodies
 
+// Verify encryption key is set up
+if (!process.env.ENCRYPTION_KEY) {
+  console.error('WARNING: ENCRYPTION_KEY environment variable is not set. Credentials encryption will not work!');
+} else {
+  // Test the encryption key
+  const keyValid = testEncryptionKey();
+  if (keyValid) {
+    console.log('Encryption key is valid and working properly.');
+  } else {
+    console.error('ERROR: Encryption key test failed. Please check the ENCRYPTION_KEY format.');
+  }
+}
+
 // Health check route
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
@@ -142,7 +153,7 @@ const createPostHandler = async (req: Request, res: Response, next: NextFunction
     console.log(`Checking credits for business ${businessId}...`);
     const { data: creditOk, error: creditErr } = await supabase.rpc(
       'check_and_decrement_credits',
-      { bid: businessId }
+      { bid: businessId, cost: 1 }  // Adding default cost parameter
     );
 
     if (creditErr) {
@@ -194,7 +205,7 @@ const createPostHandler = async (req: Request, res: Response, next: NextFunction
     // 4. Add job to the image generation queue
     console.log(`Adding job to queue for post ${postId}...`);
     // Pass the final prompt (from template or custom) to the image worker
-    await queue.add('generate', { postId, businessId, prompt: finalPrompt }); // Pass the final prompt
+    await generateQueue.add('generate', { postId, businessId, prompt: finalPrompt }); // Pass the final prompt
     console.log(`Job added for post ${postId}`);
 
     // Respond immediately, the worker will handle the rest
@@ -300,6 +311,9 @@ const getTemplatesHandler: RequestHandler = async (req, res, next) => {
 
 // Use the typed handler
 app.get('/content/templates', getTemplatesHandler);
+
+// Mount credential routes
+app.use('/credentials', credentialsRoutes);
 
 // Add error handling middleware *last*
 app.use(errorHandler);

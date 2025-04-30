@@ -36,7 +36,7 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section id="features" className="section-padding bg-white">
+    <section id="features" className="section-padding bg-[#FFFBF6]">
       <div className="container px-6 mx-auto">
         <div className="text-center max-w-2xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold">Powered by AI, Built for Results</h2>
@@ -49,7 +49,7 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="bg-white border border-gray-100 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white/80 backdrop-blur-sm border border-gray-100 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow animate-fade-in"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="h-14 w-14 bg-primary/10 rounded-full flex items-center justify-center mb-5">

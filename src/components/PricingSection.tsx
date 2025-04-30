@@ -1,57 +1,55 @@
 
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DiscoButton } from "@/components/ui/disco-button";
 
 const plans = [
   {
     name: "Starter",
-    price: "$99",
+    price: "$49",
     period: "per month",
-    description: "Perfect for small local businesses just getting started with digital marketing.",
+    description: "Basic AI content and social posting for a single user. Ideal for very small businesses or solo marketers.",
     features: [
-      "Deep research on 5 competitors",
-      "AI content generation (15 posts/mo)",
-      "Platform-specific formatting",
-      "Basic scheduling",
+      "AI content generation",
       "Single platform distribution",
+      "Basic competitor research",
       "Standard engagement metrics",
-      "Email support"
+      "Email support",
+      "Single user account"
     ],
     cta: "Start Free Trial",
     popular: false
   },
   {
     name: "Growth",
-    price: "$249",
+    price: "$149",
     period: "per month",
-    description: "Ideal for established businesses looking to expand their digital presence.",
+    description: "Everything in Starter, extended channels, advanced analytics. Suited for growing SMBs or small agencies.",
     features: [
-      "Deep research on 15 competitors",
-      "AI content generation (50 posts/mo)",
-      "Platform-specific formatting",
-      "Smart scheduling with local analytics",
+      "Everything in Starter",
       "Multi-platform distribution",
-      "Comprehensive engagement metrics",
-      "Local Facebook groups targeting",
-      "Priority support"
+      "Advanced competitor research",
+      "Comprehensive analytics",
+      "Multiple user accounts",
+      "Priority support",
+      "Local audience targeting"
     ],
     cta: "Start Free Trial",
     popular: true
   },
   {
-    name: "Enterprise",
-    price: "$499",
-    period: "per month",
-    description: "Complete solution for businesses with advanced marketing needs.",
+    name: "Scaling",
+    price: "$349",
+    period: "per month and up",
+    description: "All features unlimited, custom AI agent, dedicated support with onsite training, and SLA.",
     features: [
-      "Deep research on 30+ competitors",
       "Unlimited AI content generation",
-      "Advanced platform-specific formatting",
-      "Advanced smart scheduling",
-      "Full cross-platform distribution",
-      "Complete analytics suite",
-      "Custom integrations",
-      "Dedicated account manager"
+      "Custom AI agent for personalized workflow",
+      "All platforms supported",
+      "Full enterprise analytics suite",
+      "Unlimited user accounts",
+      "Dedicated account manager",
+      "Onsite training & SLA"
     ],
     cta: "Contact Sales",
     popular: false
@@ -75,7 +73,8 @@ const PricingSection = () => {
               key={index} 
               className={`bg-white rounded-lg border ${
                 plan.popular ? "border-primary shadow-lg relative" : "border-gray-200"
-              }`}
+              } animate-fade-in`}
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               {plan.popular && (
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
@@ -100,15 +99,19 @@ const PricingSection = () => {
                   ))}
                 </ul>
                 
-                <Button 
-                  className={`mt-8 w-full py-6 ${
-                    plan.popular 
-                      ? "bg-primary hover:bg-primary-dark text-white" 
-                      : "bg-white border border-primary text-primary hover:bg-primary/10"
-                  }`}
-                >
-                  {plan.cta}
-                </Button>
+                {plan.popular ? (
+                  <DiscoButton 
+                    className="mt-8 w-full py-6"
+                  >
+                    {plan.cta}
+                  </DiscoButton>
+                ) : (
+                  <Button 
+                    className={`mt-8 w-full py-6 bg-white border border-primary text-primary hover:bg-primary/10`}
+                  >
+                    {plan.cta}
+                  </Button>
+                )}
               </div>
             </div>
           ))}

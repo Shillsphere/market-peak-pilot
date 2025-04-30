@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +11,8 @@ import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
+import HowItWorksPage from "./pages/HowItWorksPage";
+import MeetTheFounders from "./pages/MeetTheFounders";
 import { supabase } from "@/lib/supabase";
 import { DashboardHome } from "./pages/dashboard/DashboardHome";
 import { ContentPage } from "./pages/dashboard/ContentPage";
@@ -73,6 +76,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/meet-the-founders" element={<MeetTheFounders />} />
             
             {/* Dashboard routes */}
             <Route path="/dashboard" element={
