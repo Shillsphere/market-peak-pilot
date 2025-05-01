@@ -538,6 +538,10 @@ export type Database = {
       }
     }
     Functions: {
+      accept_user: {
+        Args: { business_id: string; user_id: string }
+        Returns: undefined
+      }
       approve_user_application: {
         Args:
           | { application_id: string }
@@ -561,6 +565,10 @@ export type Database = {
       }
       is_user_approved: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      table_exists: {
+        Args: { schema_name: string; table_name: string }
         Returns: boolean
       }
     }
