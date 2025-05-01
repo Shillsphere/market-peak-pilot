@@ -3,7 +3,9 @@ import asyncHandler from '../lib/asyncHandler.js'; // Import the wrapper
 import { 
   saveCredentials, 
   getBusinessCredentials, 
-  deleteCredentials 
+  deleteCredentials,
+  initiateTwitterAuth,
+  handleTwitterCallback
 } from '../controllers/credentialsController.js';
 
 // Create a router instance
@@ -17,5 +19,12 @@ router.get('/business/:businessId', asyncHandler(getBusinessCredentials));
 
 // DELETE /api/credentials/:credentialId - Delete credentials
 router.delete('/:credentialId', asyncHandler(deleteCredentials));
+
+// Twitter OAuth routes
+// GET /api/credentials/twitter/authorize - Initiate Twitter OAuth flow
+router.get('/twitter/authorize', asyncHandler(initiateTwitterAuth));
+
+// GET /api/credentials/twitter/callback - Handle Twitter OAuth callback
+router.get('/twitter/callback', asyncHandler(handleTwitterCallback));
 
 export default router; 
