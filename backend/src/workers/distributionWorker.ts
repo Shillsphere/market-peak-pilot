@@ -2,6 +2,11 @@
 import { Worker, Job } from 'bullmq';
 import { supabase } from '../lib/supabase.js';
 import { distributionQueue } from '../queue.js';
+import { processTwitterJob } from './channels/worker-twitter.js';
+import { processGMBJob } from './channels/worker-gmb.js';
+import { processSMSJob } from './channels/worker-sms.js';
+import { processEmailJob } from './channels/worker-email.js';
+import { processFBGroupJob } from './channels/worker-fb-group.js';
 
 console.log('Distribution Worker starting...');
 
@@ -44,24 +49,44 @@ const worker = new Worker<DistributionJobData>(
       
       switch(channel) {
         case 'twitter':
-          // Will implement in upcoming days
-          result = await mockChannelResult(channel);
+          const twitterResult = await processTwitterJob(job);
+          result = {
+            success: twitterResult.success,
+            externalId: twitterResult.tweetId,
+            error: twitterResult.error
+          };
           break;
         case 'gmb':
-          // Will implement in upcoming days
-          result = await mockChannelResult(channel);
+          const gmbResult = await processGMBJob(job);
+          result = {
+            success: gmbResult.success,
+            externalId: gmbResult.postId,
+            error: gmbResult.error
+          };
           break;
         case 'sms':
-          // Will implement in upcoming days
-          result = await mockChannelResult(channel);
+          const smsResult = await processSMSJob(job);
+          result = {
+            success: smsResult.success,
+            externalId: smsResult.batchId,
+            error: smsResult.error
+          };
           break;
         case 'email':
-          // Will implement in upcoming days
-          result = await mockChannelResult(channel);
+          const emailResult = await processEmailJob(job);
+          result = {
+            success: emailResult.success,
+            externalId: emailResult.batchId,
+            error: emailResult.error
+          };
           break;
         case 'fb_group':
-          // Will implement in upcoming days
-          result = await mockChannelResult(channel);
+          const fbResult = await processFBGroupJob(job);
+          result = {
+            success: fbResult.success,
+            externalId: fbResult.notificationId,
+            error: fbResult.error
+          };
           break;
         default:
           throw new Error(`Unsupported channel: ${channel}`);
@@ -112,14 +137,6 @@ async function updateJobStatus(
   if (error) {
     console.error(`Failed to update job status for ${jobId}:`, error);
   }
-}
-
-// Mock function for channels not yet implemented
-async function mockChannelResult(channel: string): Promise<JobResult> {
-  return {
-    success: true,
-    externalId: `mock-${channel}-${Date.now()}`
-  };
 }
 
 // Event listeners

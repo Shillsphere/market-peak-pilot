@@ -5,10 +5,10 @@ import { supabase } from './lib/supabase.js';
 import { generateQueue } from './queue.js';
 import { openai } from './lib/openai.js';
 import { z } from 'zod';
-// Resolve routes conflict: Keep imports from both branches
-import researchRoutes from './routes/researchRoutes.js'; // From local
-import credentialsRoutes from './routes/credentialsRoutes.js'; // From remote
-import { testEncryptionKey } from './lib/encryption.js'; // From remote
+import researchRoutes from './routes/researchRoutes.js';
+import credentialsRoutes from './routes/credentialsRoutes.js';
+import distributeRoutes from './routes/distributeRoutes.js';
+import { testEncryptionKey } from './lib/encryption.js';
 
 // Define interfaces for request and response bodies for clarity
 interface CreatePostRequestBody {
@@ -36,24 +36,6 @@ interface PostForBackend {
 }
 
 type GetPostsResponseBody = PostForBackend[];
-
-// Interface for the POST request body - REMOVED (replaced by CreatePostRequestBody)
-// interface PostRequestBody {
-//   businessId: string;
-//   prompt: string; // Added prompt field
-// }
-
-// Validation middleware using zod (example) - REMOVED, using custom validator for now
-// const postRequestSchema = z.object({
-//   businessId: z.string().uuid(),
-//   prompt: z.string().min(10), // Added validation for prompt
-// });
-
-// Basic error handling middleware
-const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
-};
 
 // Input validation middleware - Updated for templateId or customPrompt
 const validatePostRequest: RequestHandler<{}, {}, CreatePostRequestBody> = (req, res, next) => {
@@ -136,8 +118,10 @@ app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
-// Mount the research routes
+// Mount the routes
 app.use('/api/research', researchRoutes);
+app.use('/api/credentials', credentialsRoutes);
+app.use('/api/distribute', distributeRoutes);
 
 // Extracted and typed handler for POST /content/text - Modified
 const createPostHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -312,8 +296,15 @@ const getTemplatesHandler: RequestHandler = async (req, res, next) => {
 // Use the typed handler
 app.get('/content/templates', getTemplatesHandler);
 
-// Mount credential routes
-app.use('/credentials', credentialsRoutes);
+// Basic error handling middleware
+const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error("Error occurred:", err.stack || err); // Log the error details
+  const statusCode = (err as any).status || 500; // Use specific status code if available, else 500
+  res.status(statusCode).json({
+    error: 'An unexpected error occurred.',
+    message: err.message || 'Internal Server Error' // Provide message if available
+  });
+};
 
 // Add error handling middleware *last*
 app.use(errorHandler);

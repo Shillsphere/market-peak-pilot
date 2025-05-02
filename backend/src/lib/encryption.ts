@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 // Constants for encryption
 const ALGORITHM = 'aes-256-gcm';
