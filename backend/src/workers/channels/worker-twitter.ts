@@ -89,7 +89,11 @@ export async function processTwitterJob(job: Job<TwitterJobData>): Promise<Twitt
         mediaIds.push(mediaId);
         console.log(`Image uploaded to Twitter, media_id: ${mediaId}`);
       } catch (imageError: any) {
-        console.error(`Failed to upload image to Twitter: ${imageError.message}`);
+        console.error(`Failed to download/upload image from ${imageUrl}. Full Error:`, imageError);
+        if (imageError.response) {
+            console.error(`Axios Response Status: ${imageError.response.status}`);
+            console.error(`Axios Response Data:`, imageError.response.data);
+        }
         // Continue without image if upload fails
       }
     }

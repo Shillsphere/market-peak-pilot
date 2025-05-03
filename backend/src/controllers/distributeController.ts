@@ -135,10 +135,10 @@ export const distributeContent = async (req: Request, res: Response) => {
             ? JSON.parse(decrypt(credentials.token_encrypted)) 
             : {};
             
-          // Get the image URL correctly from the nested structure
-          const imageUrl = content.generated_images ? 
-            (content.generated_images as any).url : 
-            undefined;
+          // Determine the text and imageUrl to use
+          // Prioritize values from the top-level request body, fall back to DB content
+          const textToUse = req.body.text || content.caption;
+          const imageUrlToUse = req.body.imageUrl || (content.generated_images ? (content.generated_images as any).url : undefined);
           
           await distributionQueue.add(
             `${channel}-${job.id}`,
@@ -147,10 +147,10 @@ export const distributeContent = async (req: Request, res: Response) => {
               businessId,
               contentId,
               channel: channel as DistributionChannel,
-              text: content.caption,
-              imageUrl,
+              text: textToUse, // Use the determined text
+              imageUrl: imageUrlToUse, // Use the determined image URL
               credentials: decryptedCredentials,
-              payload: job.payload
+              payload: job.payload // Pass the original payload too, workers might need channel-specific parts
             },
             {
               // If scheduled for future, delay the job
