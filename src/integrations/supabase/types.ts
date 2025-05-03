@@ -91,6 +91,176 @@ export type Database = {
           },
         ]
       }
+      competitor_reviews: {
+        Row: {
+          competitor_id: string | null
+          content: string | null
+          created_at: string | null
+          fetched_at: string | null
+          id: number
+          rating: number | null
+          review_id: string | null
+        }
+        Insert: {
+          competitor_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          fetched_at?: string | null
+          id?: number
+          rating?: number | null
+          review_id?: string | null
+        }
+        Update: {
+          competitor_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          fetched_at?: string | null
+          id?: number
+          rating?: number | null
+          review_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitor_reviews_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "competitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competitor_sentiments: {
+        Row: {
+          competitor_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          sentiment: number
+        }
+        Insert: {
+          competitor_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          sentiment: number
+        }
+        Update: {
+          competitor_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          sentiment?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitor_sentiments_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "competitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competitor_trends: {
+        Row: {
+          competitor_id: string
+          created_at: string
+          id: string
+          trend_data: Json
+        }
+        Insert: {
+          competitor_id: string
+          created_at?: string
+          id?: string
+          trend_data: Json
+        }
+        Update: {
+          competitor_id?: string
+          created_at?: string
+          id?: string
+          trend_data?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitor_trends_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "competitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competitors: {
+        Row: {
+          address: string | null
+          average_sentiment_score: number | null
+          business_id: string
+          external_id: string
+          id: string
+          last_seen: string
+          lat: number | null
+          lng: number | null
+          name: string | null
+          negative_review_count: number | null
+          neutral_review_count: number | null
+          positive_review_count: number | null
+          price_level: number | null
+          rating: number | null
+          review_count: number | null
+          sentiment_analyzed_count: number | null
+          sentiment_last_updated: string | null
+          source: string
+        }
+        Insert: {
+          address?: string | null
+          average_sentiment_score?: number | null
+          business_id: string
+          external_id: string
+          id?: string
+          last_seen?: string
+          lat?: number | null
+          lng?: number | null
+          name?: string | null
+          negative_review_count?: number | null
+          neutral_review_count?: number | null
+          positive_review_count?: number | null
+          price_level?: number | null
+          rating?: number | null
+          review_count?: number | null
+          sentiment_analyzed_count?: number | null
+          sentiment_last_updated?: string | null
+          source: string
+        }
+        Update: {
+          address?: string | null
+          average_sentiment_score?: number | null
+          business_id?: string
+          external_id?: string
+          id?: string
+          last_seen?: string
+          lat?: number | null
+          lng?: number | null
+          name?: string | null
+          negative_review_count?: number | null
+          neutral_review_count?: number | null
+          positive_review_count?: number | null
+          price_level?: number | null
+          rating?: number | null
+          review_count?: number | null
+          sentiment_analyzed_count?: number | null
+          sentiment_last_updated?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitors_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_submissions: {
         Row: {
           company: string | null
@@ -212,6 +382,35 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historical_metrics: {
+        Row: {
+          competitor_id: string
+          rating: number | null
+          review_count: number | null
+          snapshot_date: string
+        }
+        Insert: {
+          competitor_id: string
+          rating?: number | null
+          review_count?: number | null
+          snapshot_date: string
+        }
+        Update: {
+          competitor_id?: string
+          rating?: number | null
+          review_count?: number | null
+          snapshot_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historical_metrics_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "competitors"
             referencedColumns: ["id"]
           },
         ]
@@ -421,28 +620,28 @@ export type Database = {
       }
       research_results: {
         Row: {
+          agent_name: string | null
           created_at: string | null
           id: number
           job_id: string | null
           note: string | null
           payload: Json | null
-          step: Database["public"]["Enums"]["research_step"] | null
         }
         Insert: {
+          agent_name?: string | null
           created_at?: string | null
           id?: never
           job_id?: string | null
           note?: string | null
           payload?: Json | null
-          step?: Database["public"]["Enums"]["research_step"] | null
         }
         Update: {
+          agent_name?: string | null
           created_at?: string | null
           id?: never
           job_id?: string | null
           note?: string | null
           payload?: Json | null
-          step?: Database["public"]["Enums"]["research_step"] | null
         }
         Relationships: [
           {
@@ -450,6 +649,47 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "research_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          author_name: string | null
+          competitor_id: string
+          content: string | null
+          created_at: string | null
+          fetched_at: string
+          id: number
+          rating: number | null
+          review_id: string
+        }
+        Insert: {
+          author_name?: string | null
+          competitor_id: string
+          content?: string | null
+          created_at?: string | null
+          fetched_at?: string
+          id?: never
+          rating?: number | null
+          review_id: string
+        }
+        Update: {
+          author_name?: string | null
+          competitor_id?: string
+          content?: string | null
+          created_at?: string | null
+          fetched_at?: string
+          id?: never
+          rating?: number | null
+          review_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "competitors"
             referencedColumns: ["id"]
           },
         ]

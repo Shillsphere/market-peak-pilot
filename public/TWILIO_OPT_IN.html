@@ -1,27 +1,152 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Twilio Double Opt-In Proof</title>
+  <title>SMS Double Opt-In Process</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap">
+  <style>
+    :root {
+      --primary: #9b87f5;
+      --primary-light: #d6bcfa;
+      --primary-dark: #7e69ab;
+      --background: #ffffff;
+      --text-primary: #1A1F2C;
+      --text-secondary: #403E43;
+      --border: #e2e8f0;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      background-color: var(--background);
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    
+    h1, h2, h3 {
+      font-family: 'Playfair Display', serif;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+    
+    h1 {
+      font-size: 2.25rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      background: linear-gradient(to right, var(--primary-dark), var(--primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+      margin-top: 2rem;
+      color: var(--primary-dark);
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 0.5rem;
+    }
+    
+    p {
+      margin-bottom: 1.5rem;
+    }
+    
+    strong {
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+    
+    .container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      padding: 2.5rem;
+    }
+    
+    .message-template {
+      background-color: #f8fafc;
+      border-left: 4px solid var(--primary);
+      padding: 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 1.5rem;
+    }
+    
+    .company-placeholder {
+      display: inline-block;
+      background-color: var(--primary-light);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-style: italic;
+      font-weight: 500;
+    }
+    
+    .footer {
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      text-align: center;
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+    }
+    
+    @media (max-width: 640px) {
+      .container {
+        padding: 1.5rem;
+      }
+      
+      h1 {
+        font-size: 1.75rem;
+      }
+      
+      h2 {
+        font-size: 1.25rem;
+      }
+    }
+  </style>
 </head>
-<body style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 1rem;">
-  <h1>Twilio Double Opt-In SMS Flow</h1>
-
-  <h2>1) Initial Opt-In Request</h2>
-  <p>
-    <strong>Message Template:</strong><br>
-    Hi from MarketPeak! Reply <strong>YES</strong> to this message to confirm you want to receive SMS updates. Msg&amp;Data rates may apply.
-  </p>
-
-  <h2>2) Confirmation Message</h2>
-  <p>
-    <strong>Message Template:</strong><br>
-    Thanks for confirming! You'll now receive marketing and alert messages from MarketPeak. Reply <strong>STOP</strong> at any time to unsubscribe.
-  </p>
-
-  <p>
-    This page is hosted on our public site as proof of our consent flow for Twilio A2P registration.
-  </p>
+<body>
+  <div class="container">
+    <h1>SMS Double Opt-In Process</h1>
+    
+    <p>
+      This page documents the double opt-in process used when customers sign up to receive SMS communications from <span class="company-placeholder">[Company Name]</span>. This process ensures compliance with telecommunications regulations and provides a clear record of consent.
+    </p>
+    
+    <h2>1) Initial Opt-In Request</h2>
+    <div class="message-template">
+      <p>
+        <strong>Message Template:</strong><br>
+        Hi from <span class="company-placeholder">[Company Name]</span>! Reply <strong>YES</strong> to this message to confirm you want to receive SMS updates. Msg&amp;Data rates may apply.
+      </p>
+    </div>
+    
+    <h2>2) Confirmation Message</h2>
+    <div class="message-template">
+      <p>
+        <strong>Message Template:</strong><br>
+        Thanks for confirming! You'll now receive marketing and alert messages from <span class="company-placeholder">[Company Name]</span>. Reply <strong>STOP</strong> at any time to unsubscribe.
+      </p>
+    </div>
+    
+    <p>
+      This page is hosted on our public site as proof of our consent flow for Twilio A2P registration. The company name shown in actual SMS messages will be replaced with the specific business sending the communication.
+    </p>
+  </div>
+  
+  <div class="footer">
+    <p>
+      &copy; 2025 Market Peak. All rights reserved.
+    </p>
+  </div>
 </body>
-</html> 
+</html>
