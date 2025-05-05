@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -54,7 +55,7 @@ export const ResearchPage = () => {
     setCurrentJobId(routeJobId);
   }, [routeJobId]);
 
-  const handleJobCreated = (newJobId: string) => {
+  const handleJobStart = (newJobId: string) => {
     navigate(`/dashboard/research/${newJobId}`); // Navigate to the specific job page
   };
 
@@ -103,7 +104,7 @@ export const ResearchPage = () => {
         <h1 className="text-3xl font-bold">Market Research Agent</h1>
         
         {/* Panel to start a new research job */} 
-        <RunPanel onJobCreated={handleJobCreated} />
+        <RunPanel onJobStart={handleJobStart} currentJobId={currentJobId} />
 
         {/* Display area for the current/selected job */} 
         {currentJobId && (
@@ -142,9 +143,9 @@ export const ResearchPage = () => {
                 </div>
 
                 {/* Results Sections */} 
-                <TimelineStepper results={data.results} status={data.job.status} /> 
+                <TimelineStepper jobId={currentJobId} /> 
                 <CompetitorTable competitors={getCompetitorData()} /> 
-                <SummaryViewer markdownContent={getSummaryMarkdown()} /> 
+                <SummaryViewer jobId={currentJobId} /> 
                 
                 {/* Display cost if job is done */} 
                 {data.job.status === 'done' && data.job.cost_usd && (
@@ -161,4 +162,4 @@ export const ResearchPage = () => {
       </div>
     </DashboardLayout>
   );
-}; 
+};
