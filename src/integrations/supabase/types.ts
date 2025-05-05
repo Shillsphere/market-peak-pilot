@@ -573,40 +573,76 @@ export type Database = {
       }
       research_jobs: {
         Row: {
+          agent_name: string | null
+          analysis: Json | null
           business_id: string
           cost_usd: number | null
           created_at: string | null
+          error: string | null
           finished_at: string | null
+          firecrawl_data: Json | null
+          firecrawl_job_id: string | null
           id: string
           prompt: string | null
+          raw_firecrawl: Json | null
+          requires_webhook: boolean | null
+          sources: Json | null
           started_at: string | null
           status: string
+          status_details: string | null
           summary_md: string | null
+          total_cost: number | null
           user_id: string
+          webhook_secret: string | null
+          webhook_type: string | null
         }
         Insert: {
+          agent_name?: string | null
+          analysis?: Json | null
           business_id: string
           cost_usd?: number | null
           created_at?: string | null
+          error?: string | null
           finished_at?: string | null
+          firecrawl_data?: Json | null
+          firecrawl_job_id?: string | null
           id?: string
           prompt?: string | null
+          raw_firecrawl?: Json | null
+          requires_webhook?: boolean | null
+          sources?: Json | null
           started_at?: string | null
           status?: string
+          status_details?: string | null
           summary_md?: string | null
+          total_cost?: number | null
           user_id: string
+          webhook_secret?: string | null
+          webhook_type?: string | null
         }
         Update: {
+          agent_name?: string | null
+          analysis?: Json | null
           business_id?: string
           cost_usd?: number | null
           created_at?: string | null
+          error?: string | null
           finished_at?: string | null
+          firecrawl_data?: Json | null
+          firecrawl_job_id?: string | null
           id?: string
           prompt?: string | null
+          raw_firecrawl?: Json | null
+          requires_webhook?: boolean | null
+          sources?: Json | null
           started_at?: string | null
           status?: string
+          status_details?: string | null
           summary_md?: string | null
+          total_cost?: number | null
           user_id?: string
+          webhook_secret?: string | null
+          webhook_type?: string | null
         }
         Relationships: [
           {
@@ -621,31 +657,72 @@ export type Database = {
       research_results: {
         Row: {
           agent_name: string | null
+          cost: number | null
           created_at: string | null
+          data: Json | null
           id: number
           job_id: string | null
           note: string | null
           payload: Json | null
+          total_cost: number | null
         }
         Insert: {
           agent_name?: string | null
+          cost?: number | null
           created_at?: string | null
+          data?: Json | null
           id?: never
           job_id?: string | null
           note?: string | null
           payload?: Json | null
+          total_cost?: number | null
         }
         Update: {
           agent_name?: string | null
+          cost?: number | null
           created_at?: string | null
+          data?: Json | null
           id?: never
           job_id?: string | null
           note?: string | null
           payload?: Json | null
+          total_cost?: number | null
         }
         Relationships: [
           {
             foreignKeyName: "research_results_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "research_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_sources: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string | null
+          title: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          title?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          title?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_sources_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "research_jobs"

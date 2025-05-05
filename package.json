@@ -21,7 +21,7 @@
     "dev:full": "npm run build:backend && npm-run-all -p watch:backend dev:web start:api start:worker start:distribution start:research-worker"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.9.0",
+    "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-aspect-ratio": "^1.1.0",
@@ -94,7 +94,7 @@
     "twilio": "^4.7.1",
     "undici": "^7.8.0",
     "vaul": "^0.9.3",
-    "zod": "^3.23.8"
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
