@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -107,9 +106,12 @@ const plans = [
   },
   {
     name: "Multi-Location Pro",
-    price: "from $349",
-    period: "(covers first 3 locations)",
-    description: "Complete marketing solution for multi-location businesses with dedicated AI strategy and unlimited features.",
+    priceMonthly: "$399",
+    priceYearly: "$349",
+    period: "per month",
+    yearlyNote: "when billed yearly",
+    description: "Complete marketing solution for multi-location businesses with dedicated AI strategy and unlimited features. Perfect for single‑location businesses, chains, or agencies that want dedicated AI‑strategy support.",
+    locationText: "(covers first 3 locations)",
     features: [
       {
         text: "All software features unlimited",
@@ -224,23 +226,17 @@ const PricingSection = () => {
               <CardHeader className="p-8">
                 <h3 className="text-xl font-bold">{plan.name}</h3>
                 <div className="mt-4">
-                  {plan.price ? (
-                    <div className="flex items-baseline">
-                      <span className="text-4xl font-semibold">{plan.price}</span>
-                      <span className="ml-2 text-gray-600">{plan.period}</span>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="flex items-baseline">
-                        <span className="text-4xl font-semibold">
-                          {billingInterval === "yearly" ? plan.priceYearly : plan.priceMonthly}
-                        </span>
-                        <span className="ml-2 text-gray-600">per month</span>
-                      </div>
-                      {billingInterval === "yearly" && (
-                        <p className="text-sm text-gray-500 mt-1">{plan.yearlyNote}</p>
-                      )}
-                    </div>
+                  <div className="flex items-baseline">
+                    <span className="text-4xl font-semibold">
+                      {billingInterval === "yearly" ? plan.priceYearly : plan.priceMonthly}
+                    </span>
+                    <span className="ml-2 text-gray-600">{plan.period}</span>
+                  </div>
+                  {billingInterval === "yearly" && (
+                    <p className="text-sm text-gray-500 mt-1">{plan.yearlyNote}</p>
+                  )}
+                  {plan.locationText && (
+                    <p className="text-sm text-gray-500 mt-1">{plan.locationText}</p>
                   )}
                 </div>
                 <p className="mt-4 text-gray-600 text-sm">{plan.description}</p>
