@@ -86,7 +86,7 @@ export const StrategyCallPage = () => {
             />
           </a>
           <div>
-            <Button variant="outline" asChild className="mr-2 text-white border-gray-700 hover:bg-gray-800">
+            <Button variant="outline" asChild className="mr-2 text-black border-gray-700 hover:bg-gray-800 hover:text-white">
               <a href="/">Return to Home</a>
             </Button>
           </div>
