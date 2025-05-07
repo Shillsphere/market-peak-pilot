@@ -19,6 +19,7 @@ import { ContentPage } from "./pages/dashboard/ContentPage";
 import { ProfilePage } from "./pages/dashboard/ProfilePage";
 import { ResearchPage } from "./pages/dashboard/ResearchPage";
 import StrategyCallPage from "./pages/StrategyCallPage";
+import CaseStudiesPage from "./pages/CaseStudiesPage";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const App = () => (
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/meet-the-founders" element={<MeetTheFounders />} />
             <Route path="/strategy-call" element={<StrategyCallPage />} />
+            <Route path="/case-studies" element={<CaseStudiesPage />} />
             
             {/* Dashboard routes */}
             <Route path="/dashboard" element={

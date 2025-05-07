@@ -48,9 +48,9 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-4">Resources</h4>
               <ul className="space-y-2">
+                <li><Link to="/case-studies" data-gtm="footer_case_link" className="text-gray-400 hover:text-white text-sm color-transition">Case Studies</Link></li>
                 <li><a href="#" className="text-gray-400 hover:text-white text-sm color-transition">Documentation</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white text-sm color-transition">Blog</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white text-sm color-transition">Case Studies</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white text-sm color-transition">Help Center</a></li>
               </ul>
             </div>
