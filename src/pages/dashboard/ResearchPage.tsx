@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -145,7 +144,7 @@ export const ResearchPage = () => {
                 {/* Results Sections */} 
                 <TimelineStepper jobId={currentJobId} /> 
                 <CompetitorTable competitors={getCompetitorData()} /> 
-                <SummaryViewer jobId={currentJobId} /> 
+                <SummaryViewer markdown={getSummaryMarkdown()} /> 
                 
                 {/* Display cost if job is done */} 
                 {data.job.status === 'done' && data.job.cost_usd && (

@@ -30,6 +30,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "@/components/ui/use-toast";
+import { Link } from "react-router-dom";
 
 const plans = [
   {
@@ -254,7 +255,20 @@ const PricingSection = () => {
               </CardContent>
               
               <CardFooter className="px-8 pt-4 pb-8">
-                {plan.popular ? (
+                {plan.name === "Multi-Location Pro" ? (
+                  <Button 
+                    className={`w-full py-6 bg-white border border-primary text-primary hover:bg-primary/10`}
+                    asChild
+                  >
+                    <Link 
+                      to="/strategy-call"
+                      id="cta-growth-partner"
+                      data-gtm="pricing_book_call_click"
+                    >
+                      Book Strategy Call
+                    </Link>
+                  </Button>
+                ) : plan.popular ? (
                   <DiscoButton 
                     className="w-full py-6"
                   >
