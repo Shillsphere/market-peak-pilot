@@ -1,181 +1,151 @@
-import { Router, Request, Response, NextFunction, RequestHandler } from 'express';
-import { supabase } from '../lib/supabase.js'; // Adjust path as needed
-import { researchQueue } from '../lib/queue.js'; // Adjust path as needed
+import express, { Request, Response, NextFunction } from 'express';
+import { supabase } from '../lib/supabase.js';
 import { z } from 'zod';
-import { authMiddleware, AuthedRequest } from '../middleware/auth.js'; // Import AuthedRequest type
+import { scrapeQ } from '../lib/queue.js'; // Uncommented queue import
+import { v4 as uuidv4 } from 'uuid';
+import { redisClient } from '../lib/redisClient.js'; // Corrected import path
 
-// Remove Session and AuthenticatedRequest if authMiddleware handles it
-// import { Session } from '@supabase/supabase-js';
-// interface AuthenticatedRequest extends Request {
-//   user?: Session['user'];
-// }
+const router = express.Router();
 
-// Remove getUserContext and attachUserContext if authMiddleware handles it
-/*
-async function getUserContext(req: Request): Promise<{ userId: string | null; session: Session | null }> {
-  // ... existing code ...
-}
-const attachUserContext = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  // ... existing code ...
-};
-*/
-
-const router = Router();
-
-// --- Zod Schemas for Validation ---
-const CreateResearchSchema = z.object({
-  prompt: z.string().min(5, { message: "Prompt must be at least 5 characters long." }),
-  businessId: z.string().uuid(), // Expect businessId from client
+const createResearchJobSchema = z.object({
+  businessId: z.string().uuid(),
+  urls: z.array(z.string().url()).min(1, "At least one URL is required."),
+  researchTopic: z.string().optional(),
 });
 
-const GetResearchParamsSchema = z.object({
-  id: z.string().uuid({ message: "Invalid Job ID format." }),
-});
-
-// --- Routes (Inline Handlers with Promise<void> and explicit returns) --- 
-
-/**
- * POST /research
- * body: { prompt: string, businessId: uuid }
- * Creates a job and enqueues it
- */
-router.post('/', authMiddleware as RequestHandler, async (req: AuthedRequest, res: Response, next: NextFunction): Promise<void> => {
+router.post('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  console.log('[ResearchRoute POST] Received request:', req.body);
   try {
-    // Validate request body
-    const validationResult = CreateResearchSchema.safeParse(req.body);
-    if (!validationResult.success) {
-      res.status(400).json({ error: 'Invalid input', details: validationResult.error.errors });
-      return; // Explicit return after res
+    const validation = createResearchJobSchema.safeParse(req.body);
+    if (!validation.success) {
+      console.error('[ResearchRoute POST] Validation failed:', validation.error.format());
+      res.status(400).json({ error: "Invalid request body", details: validation.error.format() });
+      return;
     }
-    const { prompt, businessId } = validationResult.data;
 
-    // Access user directly from AuthedRequest
-    const userId = req.user?.id;
+    const { businessId, urls, researchTopic } = validation.data;
+    const researchJobId = uuidv4(); 
 
-    if (!userId) {
-        console.error('[API /research POST] Missing userId after auth context middleware');
-        res.status(401).json({ error: 'User authentication failed.' });
-        return; // Explicit return after res
-    }
-    // --- End Get User ID ---
+    console.log(`[ResearchRoute POST] Attempting to insert research job for businessId: ${businessId}, researchJobId: ${researchJobId}`);
 
-    console.log(`[API /research POST] Creating job for user ${userId}, business ${businessId}, prompt: "${prompt}"`);
-
-    // Insert job into the database
-    // RLS will check if the authenticated user (userId) is part of the provided businessId
-    const { data: jobRow, error: insertError } = await supabase
+    const { data: newJob, error: insertError, status } = await supabase
       .from('research_jobs')
-      .insert({ prompt, user_id: userId, business_id: businessId })
-      .select('id') // Select only ID initially
+      .insert({
+        id: researchJobId, 
+        business_id: businessId,
+        status: 'queued_scrape', // Changed status for queueing
+        prompt_text: researchTopic || `Test Research for URLs: ${urls.join(', ')}`,
+        user_id: (req as any).user?.id, 
+      })
+      .select('id, status, created_at') 
       .single();
 
     if (insertError) {
-      console.error('[API /research POST] Error inserting job:', insertError);
-      // Check for RLS violation error specifically if possible
-      if (insertError.message.includes('violates row-level security policy')) {
-        res.status(403).json({ error: 'Forbidden: User does not have permission for this business.' });
-        return; // Explicit return after res
-      } else {
-        next(insertError); // Pass other errors to handler
-        return; // Explicit return after next
-      }
+      console.error(`[ResearchRoute POST] Supabase insert error (Status: ${status}):`, insertError.message);
+      if ((insertError as any).details) console.error('[ResearchRoute POST] Insert error details:', (insertError as any).details);
+      if ((insertError as any).hint) console.error('[ResearchRoute POST] Insert error hint:', (insertError as any).hint);
+      res.status(500).json({ error: "Could not create research job in DB.", details: insertError.message });
+      return;
     }
 
-     if (!jobRow || !jobRow.id) {
-        console.error('[API /research POST] Failed to retrieve job ID after insert.');
-        res.status(500).json({ error: 'Failed to create research job.' });
-        return; // Explicit return after res
+    if (!newJob) {
+      console.error('[ResearchRoute POST] Supabase insert returned no data, but no error.');
+      res.status(500).json({ error: "DB insert succeeded but returned no data." });
+      return;
     }
-    const jobId = jobRow.id;
 
-    // Add job to the queue
+    console.log(`[ResearchRoute POST] Successfully inserted research job:`, newJob);
+    
+    // --- Re-enable queueing ---
+    console.log(`[ResearchRoute POST] Queuing job ${newJob.id} for scraping. URLs: ${urls.join(', ')}`);
+    await scrapeQ.add('scrape_urls', { researchJobId: newJob.id, urls }); 
+    
+    res.status(202).json({ message: 'Research job accepted and queued for scraping.', researchJobId: newJob.id });
+
+  } catch (error: any) {
+    console.error('[ResearchRoute POST] CATCH BLOCK - Unexpected error:', error.message, error.stack);
+    res.status(500).json({ error: "Unexpected server error.", details: error.message });
+  }
+});
+
+router.get('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // For this test, you can just return a simpler message if the job doesn't involve queues yet
     try {
-      await researchQueue.add('run', {
-        jobId: jobId,
-        // Pass necessary data to worker if needed beyond jobId
-        prompt,
-        businessId,
-        userId,
-      });
-      console.log(`[API /research POST] Job ${jobId} added to research queue.`);
-    } catch (queueError: any) {
-        console.error(`[API /research POST] Error adding job ${jobId} to queue:`, queueError);
-        // Optionally: try to delete the DB job entry or mark it as failed
-        await supabase.from('research_jobs').update({ status: 'error', error: 'Failed to queue' }).eq('id', jobId);
-        next(new Error('Failed to queue research job after creation.'));
-        return; // Explicit return after next
-    }
+        const { id } = req.params;
+        console.log(`[ResearchRoute GET /${id}] Received request for job details (test mode).`);
+        const { data: job, error } = await supabase
+          .from('research_jobs')
+          .select('id, status, result, finished_at, created_at, credits_used, prompt_text')
+          .eq('id', id)
+          .single();
 
-    // Respond with Accepted status and Job ID
-    res.status(202).json({ jobId: jobId, status: 'queued' });
-    // No return needed here; end of try block implies void.
-  } catch (error) {
-    next(error); // Pass any unexpected errors to the error handler
-    return; // Explicit return after next in catch block
-  }
-});
-
-/**
- * GET /research/:id
- * Returns job status + docs
- */
-router.get('/:id', authMiddleware as RequestHandler, async (req: AuthedRequest, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    // Validate params
-    const paramsValidation = GetResearchParamsSchema.safeParse(req.params);
-    if (!paramsValidation.success) {
-        res.status(400).json({ error: 'Invalid Job ID', details: paramsValidation.error.errors });
-        return; // Explicit return after res
-    }
-    const { id: jobId } = paramsValidation.data;
-
-    // Access user directly from AuthedRequest
-    const userId = req.user?.id;
-    console.log(`[API /research GET] User ${userId} fetching job ${jobId}`);
-    // --- End Get User ID ---
-
-    // Fetch job details and related documents
-    // RLS policy should handle authorization implicitly based on authMiddleware's user
-    const { data: job, error: jobError } = await supabase
-        .from('research_jobs')
-        .select('*, docs:research_docs(*)') // Fetch related docs using the relationship
-        .eq('id', jobId)
-        .single();
-
-    if (jobError) {
-      // Handle not found (potentially RLS denial)
-      if (jobError.code === 'PGRST116') { // PostgREST code for no rows found
-        res.status(404).json({ error: 'Research job not found or access denied.' });
-        return; // Explicit return after res
-      } else {
-        console.error(`[API /research GET] Error fetching job ${jobId}:`, jobError);
-        next(jobError); // Pass other errors to handler
-        return; // Explicit return after next
+        if (error) {
+            console.error(`[ResearchRoute GET /${id}] Supabase error:`, error.message);
+            res.status(500).json({ error: "Error fetching job details.", details: error.message});
+            return;
+        };
+        if (!job) {
+            console.log(`[ResearchRoute GET /${id}] Job not found.`);
+            res.status(404).json({ error: "Research job not found." });
+            return;
+        }
+        console.log(`[ResearchRoute GET /${id}] Successfully fetched job details:`, job);
+        res.json(job);
+      } catch (error: any) {
+        console.error(`[ResearchRoute GET /${req.params.id}] CATCH BLOCK - Unexpected error:`, error.message);
+        // next(error);
+        res.status(500).json({ error: "Unexpected server error fetching job.", details: error.message });
       }
-    }
-
-    // No need to fetch results separately anymore if using the relationship select
-    /*
-    const { data: results, error: resultsError } = await supabase
-        .from('research_results') // This table might be deprecated by the blueprint
-        .select('*')
-        .eq('job_id', jobId)
-        .order('created_at', { ascending: true });
-
-    if (resultsError) {
-        console.error(`[API /research GET] Error fetching results for job ${jobId}:`, resultsError);
-        res.json({ job, results: [] }); // Return job even if results fail
-        return;
-    }
-    */
-
-    // Job object now contains a 'docs' array if the relationship is set up correctly
-    res.json(job);
-    // No return needed here; end of try block implies void.
-  } catch (error) {
-    next(error);
-    return; // Explicit return after next in catch block
-  }
 });
 
-export default router; 
+router.get('/:id/stream', async (req: Request, res: Response): Promise<void> => {
+    const { id: researchJobId } = req.params;
+    console.log(`[API-SSE] Client connected for research stream: ${researchJobId}`);
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders(); 
+    
+    const channel = `research:${researchJobId}`;
+    const subscriber = redisClient.duplicate();
+
+    subscriber.on('message', (channelName: string, message: string) => {
+        if (channelName === channel) {
+            console.log(`[API-SSE] Relaying message from Redis channel '${channelName}' to client for job ${researchJobId}: ${message.substring(0,100)}...`);
+            res.write(`data: ${message}\n\n`);
+        }
+    });
+
+    await subscriber.subscribe(channel, (err, count) => { 
+        if (err) {
+            console.error(`[API-SSE] Failed to subscribe to Redis channel ${channel}:`, err);
+            res.end();
+            return;
+        }
+        console.log(`[API-SSE] Subscribed to Redis channel ${channel}. Count: ${count}`);
+    });
+
+    const heartbeatInterval = setInterval(() => {
+        res.write(':heartbeat\n\n'); 
+    }, 15000);
+
+    req.on('close', async () => {
+      console.log(`[API-SSE] Client disconnected from research stream: ${researchJobId}`);
+      clearInterval(heartbeatInterval);
+      if (subscriber.status === 'ready') { 
+        try {
+            await subscriber.unsubscribe(channel);
+            console.log(`[API-SSE] Unsubscribed from Redis channel: ${channel}`);
+            await subscriber.quit();
+            console.log(`[API-SSE] Redis subscriber quit for channel: ${channel}`);
+        } catch (unsubError) {
+            console.error(`[API-SSE] Error during unsubscribe/quit for channel ${channel}:`, unsubError);
+        }
+      } else {
+        console.log(`[API-SSE] Subscriber for channel ${channel} status is '${subscriber.status}', no unsubscribe/quit needed or already disconnected.`);
+      }
+    });
+});
+
+export default router;

@@ -11,6 +11,14 @@ import { SummaryViewer } from "@/components/research/SummaryViewer";
 import { CompetitorTable } from "@/components/research/CompetitorTable";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from 'lucide-react';
+import useResearchJob from '@/hooks/useResearchJob.tsx';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useBusiness } from '@/providers/BusinessProvider';
+import { toast } from '@/components/ui/use-toast';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 
 // Define types for the API response
 interface ResearchJob {
@@ -45,18 +53,61 @@ const fetchResearchData = async (jobId: string): Promise<ResearchData> => {
 };
 
 export const ResearchPage = () => {
-  const { jobId: routeJobId } = useParams<{ jobId?: string }>();
+  const { jobId: jobIdFromParams } = useParams<{ jobId?: string }>();
   const navigate = useNavigate();
-  const [currentJobId, setCurrentJobId] = useState<string | undefined>(routeJobId);
+  const { currentBusiness } = useBusiness();
 
-  // Effect to update jobId if route changes (e.g., after creation)
-  useEffect(() => {
-    setCurrentJobId(routeJobId);
-  }, [routeJobId]);
+  const [inputUrls, setInputUrls] = useState('');
+  const [researchTopic, setResearchTopic] = useState('');
+  const [currentJobId, setCurrentJobId] = useState<string | null>(jobIdFromParams || null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleJobStart = (newJobId: string) => {
-    navigate(`/dashboard/research/${newJobId}`); // Navigate to the specific job page
+  const { display: researchJobDisplay, job: currentJobDetails, isLoading: jobIsLoading, refetch: refetchJob } = useResearchJob(currentJobId);
+
+  const handleStartResearch = async () => {
+    if (!currentBusiness?.id) {
+      toast({ title: "Error", description: "No active business selected.", variant: "destructive" });
+      return;
+    }
+    const urls = inputUrls.split('\n').map(url => url.trim()).filter(url => url.length > 0);
+    if (urls.length === 0) {
+      toast({ title: "Error", description: "Please enter at least one URL.", variant: "destructive" });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/research', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessId: currentBusiness.id,
+          urls,
+          researchTopic,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+      toast({ title: "Success", description: "Research job started!" });
+      setCurrentJobId(data.researchJobId);
+      navigate(`/dashboard/research/${data.researchJobId}`, { replace: true });
+    } catch (error) {
+      console.error("Failed to start research job:", error);
+      toast({ title: "Error", description: `Failed to start research: ${(error as Error).message}`, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  useEffect(() => {
+    if (jobIdFromParams && jobIdFromParams !== 'undefined') {
+      setCurrentJobId(jobIdFromParams);
+    } else {
+      setCurrentJobId(null);
+    }
+  }, [jobIdFromParams]);
 
   // Fetch data using TanStack Query
   const { data, isLoading, error, isRefetching } = useQuery<ResearchData, Error>({
@@ -99,65 +150,62 @@ export const ResearchPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        <h1 className="text-3xl font-bold">Market Research Agent</h1>
+      <div className="container mx-auto p-4 md:p-8">
+        <h1 className="text-3xl font-bold mb-6">Market & Competitor Research</h1>
         
-        {/* Panel to start a new research job */} 
-        <RunPanel onJobStart={handleJobStart} currentJobId={currentJobId} />
-
-        {/* Display area for the current/selected job */} 
-        {currentJobId && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Research Details (Job: {currentJobId.substring(0, 8)}...)</h2>
-            
-            {/* Loading State */} 
-            {(isLoading || (isRefetching && !data)) && <LoadingState message="Loading research data..." />}
-            
-            {/* Error State */} 
-            {error && !isLoading && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Error Loading Research Job</AlertTitle>
-                <AlertDescription>{error.message}</AlertDescription>
-              </Alert>
-            )}
-
-            {/* Data Display */} 
-            {data && (
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-4 p-4 border rounded-md bg-card">
-                  <span className="font-medium">Status:</span>
-                  <StatusBadge status={data.job.status} />
-                  {data.job.status === 'error' && getLastErrorNote() && (
-                      <span className="text-xs text-destructive">({getLastErrorNote()})</span>
-                  )}
-                  <span className="text-sm text-muted-foreground ml-auto">Created: {new Date(data.job.created_at).toLocaleString()}</span>
-                  {data.job.finished_at && (
-                      <span className="text-sm text-muted-foreground">Finished: {new Date(data.job.finished_at).toLocaleString()}</span>
-                  )}
-                </div>
-                <div className="p-4 border rounded-md bg-card">
-                  <p className="text-sm font-medium mb-1">Prompt:</p>
-                  <p className="text-muted-foreground italic">{data.job.prompt}</p>
-                </div>
-
-                {/* Results Sections */} 
-                <TimelineStepper jobId={currentJobId} /> 
-                <CompetitorTable competitors={getCompetitorData()} /> 
-                <SummaryViewer markdown={getSummaryMarkdown()} /> 
-                
-                {/* Display cost if job is done */} 
-                {data.job.status === 'done' && data.job.cost_usd && (
-                  <p className="text-sm text-muted-foreground text-right">Estimated Cost: ${data.job.cost_usd.toFixed(4)}</p>
-                )}
+        {!currentJobId && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Start New Research</CardTitle>
+              <CardDescription>Enter competitor URLs (one per line) to analyze.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="research-urls">Competitor URLs (one per line)</Label>
+                <Textarea
+                  id="research-urls"
+                  placeholder="https://competitor1.com\nhttps://competitor2.com"
+                  value={inputUrls}
+                  onChange={(e) => setInputUrls(e.target.value)}
+                  rows={5}
+                  disabled={isSubmitting}
+                />
               </div>
+              <div>
+                <Label htmlFor="research-topic">Research Focus (Optional)</Label>
+                <Input
+                  id="research-topic"
+                  placeholder="e.g., their pricing strategy, main product features"
+                  value={researchTopic}
+                  onChange={(e) => setResearchTopic(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+              <Button onClick={handleStartResearch} disabled={isSubmitting || !inputUrls.trim()}>
+                {isSubmitting ? 'Starting Research...' : 'Start Research'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {currentJobId && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">Research Job: {currentJobId.substring(0,8)}...</h2>
+              <Button onClick={() => { setCurrentJobId(null); navigate('/dashboard/research'); }} variant="outline" size="sm">
+                Start New Research
+              </Button>
+            </div>
+            {currentJobDetails?.prompt_text && <p className="mb-2 text-sm text-muted-foreground">Focus: {currentJobDetails.prompt_text}</p>}
+            {researchJobDisplay}
+            {currentJobDetails && (currentJobDetails.status === 'completed' || currentJobDetails.status === 'error') && (
+              <Button onClick={() => refetchJob()} className="mt-4" variant="ghost" disabled={jobIsLoading}>
+                {jobIsLoading ? "Refreshing..." : "Refresh Job"}
+              </Button>
             )}
           </div>
         )}
-
-        {!currentJobId && !isLoading && (
-            <p className="text-center text-muted-foreground">Enter a prompt above to start a new research job.</p>
-        )}
+        
       </div>
     </DashboardLayout>
   );

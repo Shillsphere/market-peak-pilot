@@ -1,6 +1,7 @@
 // Resolve dotenv conflict: Remove explicit loading and fallback, rely on --env-file
 // Keep express import
 import express, { Request, Response, NextFunction, RequestHandler } from 'express';
+import cors from 'cors';
 import { supabase } from './lib/supabase.js';
 import { generateQueue } from './queue.js';
 import { openai } from './lib/openai.js';
@@ -94,10 +95,42 @@ const buildPrompt = async (body: CreatePostRequestBody): Promise<string> => {
   throw new Error('Either templateId or customPrompt required');
 };
 
+// ---- START SUPABASE CONNECTION TEST ----
+(async () => {
+  try {
+    console.log('[Supabase Test] Attempting to connect and fetch a simple query...');
+    // Use a table name that you know exists and is accessible with the service role key.
+    const { data, error, status } = await supabase
+      .from('businesses') // Using 'businesses' as a likely table
+      .select('id')
+      .limit(1);
+
+    if (error) {
+      console.error('[Supabase Test] Error during fetch:', error.message);
+      console.error(`[Supabase Test] Status: ${status}`);
+      if ((error as any).details) console.error('[Supabase Test] Error details:', (error as any).details);
+      if ((error as any).hint) console.error('[Supabase Test] Error hint:', (error as any).hint);
+      if ((error as any).cause) console.error('[Supabase Test] Underlying cause:', (error as any).cause);
+      else if (error.stack) console.error('[Supabase Test] Error stack for more context:', error.stack);
+    } else {
+      console.log('[Supabase Test] Successfully fetched data (or empty array if table empty):', data);
+    }
+  } catch (e: any) {
+    console.error('[Supabase Test] CRITICAL: Caught exception during Supabase direct test:', e.message);
+    if (e.cause) {
+        console.error('[Supabase Test] Exception cause:', e.cause);
+    } else {
+        console.error('[Supabase Test] Exception stack:', e.stack);
+    }
+  }
+})();
+// ---- END SUPABASE CONNECTION TEST ----
 
 const app = express();
-const port = process.env.PORT || 4000; // Use environment variable or default
+const port = process.env.PORT || 3001; // Adjusted default to 3001 as seen in logs
 
+// Middlewares
+app.use(cors());
 app.use(express.json()); // Middleware to parse JSON bodies
 
 // Verify encryption key is set up
@@ -119,7 +152,7 @@ app.get('/health', (req, res) => {
 });
 
 // Mount the routes
-app.use('/api/research', researchRoutes);
+app.use('/research', researchRoutes);
 app.use('/api/credentials', credentialsRoutes);
 app.use('/api/distribute', distributeRoutes);
 
@@ -297,18 +330,13 @@ const getTemplatesHandler: RequestHandler = async (req, res, next) => {
 app.get('/content/templates', getTemplatesHandler);
 
 // Basic error handling middleware
-const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error("Error occurred:", err.stack || err); // Log the error details
-  const statusCode = (err as any).status || 500; // Use specific status code if available, else 500
-  res.status(statusCode).json({
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("[Global Error Handler] Error caught:", err.stack || err.message);
+  res.status(err.status || 500).json({
     error: 'An unexpected error occurred.',
-    message: err.message || 'Internal Server Error' // Provide message if available
+    message: err.message || 'Internal Server Error',
   });
-};
-
-// Add error handling middleware *last*
-app.use(errorHandler);
-
+});
 
 app.listen(port, () => {
   console.log(`Backend server listening on port ${port}`);

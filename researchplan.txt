@@ -1,0 +1,932 @@
+Okay, this is a significant integration. The new research function introduces Fastify as a backend server, a different way of handling DB connections (raw pg vs. Supabase client), and SSE for real-time frontend updates.
+Given your existing Express backend and Supabase integration, the most practical approach is to adapt the new research logic to fit within your existing Express/Supabase structure rather than trying to run two separate backend servers or completely rewriting your existing one to Fastify. This will minimize disruption and leverage your current setup.
+Here's a detailed plan:
+I. Understanding the Core Changes & Strategy
+Backend Server: Your current backend is Express. The new code provides a Fastify server. We will integrate the new routes and logic into your Express server.
+Database: You use Supabase (which is PostgreSQL). The new code uses the pg library directly. We will continue using the Supabase client for database interactions but apply the new SQL schema changes.
+Queues: Both use BullMQ and Redis. This is good; we can reuse your existing Redis setup.
+Workers: The new system has scrapeWorker.ts and o3ReasoningWorker.ts. These will replace/augment your existing researchWorker.ts.
+API Endpoints:
+The new system expects a way to initiate research (let's assume we adapt your existing POST /api/research for this).
+It needs GET /api/research/:id to fetch job status.
+It needs GET /api/research/:id/stream for Server-Sent Events (SSE).
+Frontend: New hook useResearchJob.tsx and components LinearProgress.tsx, CompetitorCards.tsx. These will integrate into your existing ResearchPage.tsx.
+Real-time Updates: The o3ReasoningWorker will publish messages to a Redis channel, and the researchStream Express route will subscribe to this channel and forward messages to the client via SSE.
+II. Pre-requisites & Setup
+Backup Your Codebase: Before making any changes, ensure you have a complete backup of your project.
+Install New Dependencies:
+Open your package.json (the root one, not the backend-specific one if you have one) and add/update dependencies.
+Merge the dependencies from the new package.json excerpt with your existing ones.
+The key new ones are:
+@firecrawl/node
+redis (you likely have BullMQ, which might use ioredis, but the new code explicitly uses redis v4. Ensure compatibility or use ioredis if your BullMQ setup depends on it. For this plan, I'll assume redis v4 is fine or you adapt).
+bottleneck (if not already present, for rate limiting OpenAI calls)
+Run:
+npm install @firecrawl/node redis bottleneck # Add any other missing ones like zod if not present
+npm install --save-dev nock # if you want to run the example tests
+Use code with caution.
+Bash
+Environment Variables:
+Merge the new .env.example variables into your existing .env file (create it from .env.example if it doesn't exist).
+# Existing variables...
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key # Important for backend
+OPENAI_API_KEY=your_openai_key
+REDIS_URL=redis://127.0.0.1:6379 # Or your existing Redis URL
+ENCRYPTION_KEY=your_encryption_key
+# New variables for research
+FIRECRAWL_API_KEY=your_firecrawl_api_key
+O3_MAX_TOKENS=2500
+REASONING_CONCURRENCY=2
+MONTHLY_CREDIT_LIMIT=50 # This seems business logic related, ensure it's handled or set appropriately
+# DATABASE_URL will be handled by Supabase env vars
+Use code with caution.
+Dotenv
+Note: DATABASE_URL is used by the pg library. Since we'll use the Supabase client, SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are more relevant for the backend.
+Database Schema Changes:
+Connect to your Supabase PostgreSQL database (Dashboard > SQL Editor) and run the following SQL:
+-- Add to research_jobs (assuming your table is indeed named research_jobs)
+-- If your existing research_jobs table was created by Supabase Studio, it might have 'id' as bigint.
+-- The new system expects 'id' to be uuid for research_jobs.
+-- If your 'id' is not UUID, you'll need to reconcile this.
+-- For now, I'll assume you can add these columns.
+-- If your current research_jobs.id is NOT uuid, you'll need to adapt workers or change table structure significantly.
+-- This plan assumes research_jobs.id is already UUID or you'll handle the type mismatch.
+
+ALTER TABLE research_jobs
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending', -- Changed default to 'pending'
+  ADD COLUMN IF NOT EXISTS result JSONB,
+  ADD COLUMN IF NOT EXISTS finished_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS credits_used NUMERIC DEFAULT 0;
+
+-- Optional relational copy of the queue (handy for debugging)
+-- Note: The provided worker code does NOT write to this table.
+-- It's for manual debugging if you populate it separately or if BullMQ offers a way to mirror.
+CREATE TABLE IF NOT EXISTS reasoning_queue (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_id     UUID REFERENCES research_jobs(id) ON DELETE CASCADE,
+  pages_md   TEXT[] NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+Use code with caution.
+SQL
+CRITICAL: The new research system seems to assume research_jobs.id is UUID. Your existing research_jobs might have id BIGINT auto-increment. You'll need to:
+Either change research_jobs.id to UUID (complex migration if data exists).
+Or adapt all new code referencing jobId to expect BIGINT and ensure your POST /api/research returns this BIGINT ID.
+For simplicity of this guide, I'll proceed assuming jobId can be passed around as a string and your DB can handle it, or you adjust the types. The SQL above adds columns, it doesn't change the id type.
+III. Backend Implementation (Adapting to Express/Supabase)
+Create/Update Backend Library Files:
+backend/src/lib/firecrawl.ts:
+// backend/src/lib/firecrawl.ts
+import FirecrawlApp from "@firecrawl/node"; // Default import name might differ
+
+if (!process.env.FIRECRAWL_API_KEY) {
+  console.warn("FIRECRAWL_API_KEY is not set. Firecrawl functionality will be disabled.");
+}
+
+export const firecrawl = new FirecrawlApp({
+  apiKey: process.env.FIRECRAWL_API_KEY!,
+});
+Use code with caution.
+TypeScript
+backend/src/lib/redisClient.ts (New file, or integrate into existing queue setup):
+// backend/src/lib/redisClient.ts
+import { createClient } from 'redis';
+
+if (!process.env.REDIS_URL) {
+  throw new Error("REDIS_URL is not defined in environment variables.");
+}
+
+export const redisClient = createClient({ url: process.env.REDIS_URL });
+
+redisClient.on('error', (err) => console.error('Redis Client Error', err));
+
+// Connect client
+(async () => {
+  try {
+    await redisClient.connect();
+    console.log('Connected to Redis successfully.');
+  } catch (err) {
+    console.error('Could not connect to Redis:', err);
+  }
+})();
+
+// Export a publisher and a subscriber client for clarity, as they operate differently
+export const redisPublisher = redisClient.duplicate();
+export const redisSubscriber = redisClient.duplicate();
+
+(async () => {
+  if (!redisPublisher.isOpen) await redisPublisher.connect();
+  if (!redisSubscriber.isOpen) await redisSubscriber.connect();
+})();
+Use code with caution.
+TypeScript
+backend/src/queues.ts (or backend/src/lib/queue.ts - adapt your existing BullMQ setup):
+Your existing backend/src/lib/queue.ts already sets up BullMQ. We need to add the new queues.
+Modify your existing queue file:
+// backend/src/lib/queue.ts (or wherever your BullMQ queues are defined)
+import { Queue } from "bullmq";
+import { redisClient } from './redisClient'; // Use the shared client connection options
+
+const connectionOptions = {
+    connection: redisClient, // BullMQ can take a Redis client instance or connection options
+};
+
+// Your existing queues (generateQueue, distributionQueue)
+export const generateQueue = new Queue("generate", connectionOptions);
+export const distributionQueue = new Queue("distribution", connectionOptions);
+
+// New queues for research
+export const scrapeQ = new Queue("scrape", connectionOptions);
+export const reasoningQ = new Queue("reasoning", connectionOptions);
+
+console.log('[Queue] Initialized: generate, distribution, scrape, reasoning');
+// ... (rest of your existing queue file, if any)
+Use code with caution.
+TypeScript
+Create Backend Workers:
+Place these in backend/src/workers/.
+backend/src/workers/scrapeWorker.ts:
+// backend/src/workers/scrapeWorker.ts
+import 'dotenv/config';
+import { Worker, Job } from "bullmq";
+import { firecrawl } from "../lib/firecrawl.js";
+import { supabase } from "../lib/supabase.js"; // Your existing Supabase admin client
+import { reasoningQ, scrapeQ } from "../queues.js"; // Adjusted path
+import { redisClient } from '../lib/redisClient.js';
+
+async function scrape(job: Job) {
+  console.log(`[ScrapeWorker] Processing job ${job.id} for research ID: ${job.data.researchJobId}`);
+  const { researchJobId, urls } = job.data as { researchJobId: string; urls: string[] };
+  const pages_md: string[] = []; // Changed name for clarity
+
+  if (!process.env.FIRECRAWL_API_KEY) {
+    console.error("[ScrapeWorker] FIRECRAWL_API_KEY not set. Cannot scrape.");
+    await supabase.from('research_jobs').update({ status: 'error', result: { error: 'Firecrawl API key not configured' } }).eq('id', researchJobId);
+    throw new Error("Firecrawl API key not configured");
+  }
+
+  for (const url of urls) {
+    try {
+      console.log(`[ScrapeWorker] Scraping URL: ${url} for job ${researchJobId}`);
+      const scrapeResult = await firecrawl.scrapeUrl(url, { pageOptions: { format: "markdown" } }); // Corrected format option
+      if (scrapeResult && scrapeResult.markdown) { // Check if markdown exists
+        pages_md.push(scrapeResult.markdown);
+      } else {
+        console.warn(`[ScrapeWorker] No markdown content returned for URL: ${url}`);
+        // Optionally push a placeholder or skip
+      }
+    } catch (error) {
+      console.error(`[ScrapeWorker] Error scraping URL ${url}:`, error);
+      // Decide if one failed URL fails the whole job or just skips
+      pages_md.push(`Error scraping ${url}: ${(error as Error).message}`); // Add error info to content
+    }
+  }
+
+  console.log(`[ScrapeWorker] Scraped ${pages_md.length} pages for job ${researchJobId}. Enqueuing for reasoning.`);
+  await reasoningQ.add("reason", { researchJobId, pages_md }); // Ensure pages_md is used here
+
+  const { error: updateError } = await supabase
+    .from('research_jobs')
+    .update({ status: 'reasoning' })
+    .eq('id', researchJobId);
+
+  if (updateError) {
+    console.error(`[ScrapeWorker] Error updating research_job ${researchJobId} status to 'reasoning':`, updateError);
+  }
+}
+
+console.log('[ScrapeWorker] Initializing...');
+new Worker("scrape", scrape, { connection: redisClient.duplicate() }) // Use a duplicated client for worker
+  .on('completed', (job) => console.log(`[ScrapeWorker] Job ${job.id} completed.`))
+  .on('failed', async (job, err) => {
+    console.error(`[ScrapeWorker] Job ${job?.id} failed for research ID ${job?.data.researchJobId}:`, err);
+    if (job?.data.researchJobId) {
+      await supabase.from('research_jobs').update({ status: 'error', result: { error: err.message } }).eq('id', job.data.researchJobId);
+    }
+  });
+console.log('[ScrapeWorker] Started and listening for scrape jobs.');
+Use code with caution.
+TypeScript
+backend/src/workers/o3ReasoningWorker.ts:
+// backend/src/workers/o3ReasoningWorker.ts
+import 'dotenv/config';
+import { Worker, Job } from "bullmq";
+import OpenAI from "openai";
+import Bottleneck from "bottleneck";
+import { redisClient, redisPublisher } from "../lib/redisClient.js"; // Use shared client
+import { supabase } from "../lib/supabase.js";
+import { z } from "zod";
+import { reasoningQ } from '../queues.js';
+
+if (!process.env.OPENAI_API_KEY) {
+  console.warn("OPENAI_API_KEY is not set. OpenAI functionality will be disabled.");
+}
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+
+const limiter = new Bottleneck({ minTime: 350 }); // Min 350ms between OpenAI calls
+const TOKEN_PRICE_INPUT = 0.0005; // GPT-3.5 Turbo input, assuming o3 is similar or gpt-4o-mini
+const TOKEN_PRICE_OUTPUT = 0.0015; // GPT-3.5 Turbo output
+// const TOKEN_PRICE_INPUT = 0.005; // GPT-4 input
+// const TOKEN_PRICE_OUTPUT = 0.015; // GPT-4 output
+
+
+const competitorSchema = z.object({
+  name: z.string().min(1).describe("Company name of the competitor."),
+  strategy: z.string().min(20).describe("Detailed marketing strategy, key value propositions, and target audience."),
+  urls: z.array(z.string().url()).min(1).describe("Relevant URLs for this competitor (e.g., homepage, key product pages)."),
+});
+
+const outputSchema = z.object({
+  competitors: z.array(competitorSchema).describe("A list of direct competitors found in the provided text."),
+});
+
+type Output = z.infer<typeof outputSchema>;
+
+const MAX_CONTENT_LENGTH = process.env.NODE_ENV === 'development' ? 10000 : 60000; // Shorter for dev testing
+
+async function reason(job: Job) {
+  console.log(`[ReasoningWorker] Processing job ${job.id} for research ID: ${job.data.researchJobId}`);
+  const { researchJobId, pages_md } = job.data as { researchJobId: string; pages_md: string[] }; // Use pages_md
+  const content = pages_md.join("\n\n---\n\n").slice(0, MAX_CONTENT_LENGTH);
+
+  const systemPrompt = `You are a senior market-research analyst. Your task is to analyze the provided text, which contains information scraped from various company websites.
+Identify direct competitors based on the content. For each competitor, extract their name, a detailed description of their marketing strategy (including key value propositions and target audience), and relevant URLs.
+Return the information in JSON format, adhering strictly to the following schema. Only include direct competitors found in the text. If no competitors are found, return an empty list for "competitors".
+JSON Schema:
+${JSON.stringify(outputSchema.jsonSchema, null, 2)}`; // More robust schema description
+
+  const messages = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: `Here is the scraped content:\n\n${content}` },
+  ];
+
+  if (!process.env.OPENAI_API_KEY) {
+    console.error("[ReasoningWorker] OPENAI_API_KEY not set. Cannot perform reasoning.");
+    throw new Error("OpenAI API key not configured");
+  }
+
+  const stream = await limiter.schedule(() =>
+    openai.chat.completions.create({
+      model: "gpt-4o-mini", // Cheaper, faster, good enough for structured JSON. "gpt-3.5-turbo" is also an option. "o3" might be internal.
+      // model: "gpt-4-turbo", // More expensive but potentially better
+      stream: false, // We will stream "chunks" of the final JSON for effect, not OpenAI stream
+      response_format: { type: "json_object" },
+      messages: messages as any, // OpenAI types can be finicky with roles
+      max_tokens: parseInt(process.env.O3_MAX_TOKENS ?? "2500", 10),
+    })
+  );
+  
+  const rawJsonString = stream.choices[0].message?.content;
+  if (!rawJsonString) {
+    throw new Error("OpenAI returned empty content.");
+  }
+
+  console.log(`[ReasoningWorker] OpenAI raw response for ${researchJobId}: ${rawJsonString.substring(0, 200)}...`);
+
+  const parsed = outputSchema.safeParse(JSON.parse(rawJsonString));
+  if (!parsed.success) {
+    console.error(`[ReasoningWorker] Schema mismatch for ${researchJobId}:`, parsed.error.errors);
+    // Log the actual JSON that failed parsing
+    console.error(`[ReasoningWorker] Failed JSON: ${rawJsonString}`);
+    // Try to publish the error for the client to see
+    await redisPublisher.publish(`research:${researchJobId}`, JSON.stringify({ type: "error", message: "AI failed to generate valid competitor data structure.", details: parsed.error.toString() }));
+    throw new Error("schema-mismatch: " + parsed.error.toString());
+  }
+  
+  // Simulate streaming the final result in chunks for the frontend
+  // This is for UI effect if the actual OpenAI stream is too complex to pass through
+  const resultData = parsed.data;
+  if (resultData.competitors && resultData.competitors.length > 0) {
+    for (let i = 0; i < resultData.competitors.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 300)); // Delay for effect
+      const partialResult = { competitors: resultData.competitors.slice(0, i + 1) };
+      console.log(`[ReasoningWorker] Publishing partial result for ${researchJobId}: Competitor ${i+1}`);
+      await redisPublisher.publish(`research:${researchJobId}`, JSON.stringify({ type: "data", payload: partialResult }));
+    }
+  } else {
+     await redisPublisher.publish(`research:${researchJobId}`, JSON.stringify({ type: "data", payload: { competitors: [] } }));
+  }
+
+
+  const inputTokens = stream.usage?.prompt_tokens ?? 0;
+  const outputTokens = stream.usage?.completion_tokens ?? 0;
+  const cost = (inputTokens / 1000 * TOKEN_PRICE_INPUT) + (outputTokens / 1000 * TOKEN_PRICE_OUTPUT);
+
+  console.log(`[ReasoningWorker] Storing final result for ${researchJobId}. Cost: $${cost.toFixed(4)}`);
+  const { error: updateError } = await supabase
+    .from('research_jobs')
+    .update({
+      status: 'completed',
+      result: resultData, // Store the validated data
+      finished_at: new Date().toISOString(),
+      credits_used: cost // You might want to increment, not overwrite: .update({ credits_used: supabase.sql`credits_used + ${cost}`})
+    })
+    .eq('id', researchJobId);
+
+  if (updateError) {
+    console.error(`[ReasoningWorker] Error updating research_job ${researchJobId} to 'completed':`, updateError);
+  }
+  await redisPublisher.publish(`research:${researchJobId}`, JSON.stringify({ type: "done" }));
+}
+
+console.log('[ReasoningWorker] Initializing...');
+new Worker("reasoning", reason, {
+  concurrency: parseInt(process.env.REASONING_CONCURRENCY ?? "2", 10),
+  connection: redisClient.duplicate(), // Use a duplicated client
+})
+.on('completed', (job) => console.log(`[ReasoningWorker] Job ${job.id} completed.`))
+.on('failed', async (job, err) => {
+  console.error(`[ReasoningWorker] Job ${job?.id} failed for research ID ${job?.data.researchJobId}:`, err.message);
+  if (job?.data.researchJobId) {
+     await redisPublisher.publish(`research:${job.data.researchJobId}`, JSON.stringify({ type: "error", message: err.message || "Reasoning process failed." }));
+    await supabase.from('research_jobs').update({ status: 'error', result: { error: err.message } }).eq('id', job.data.researchJobId);
+  }
+});
+console.log('[ReasoningWorker] Started and listening for reasoning jobs.');
+Use code with caution.
+TypeScript
+Adapt Backend Routes (Express):
+Modify backend/src/routes/researchRoutes.ts (or create it if it doesn't exist and wire it up in server.ts).
+// backend/src/routes/researchRoutes.ts
+import express, { Request, Response, NextFunction } from 'express';
+import { supabase } from '../lib/supabase.js';
+import { z } from 'zod';
+import { scrapeQ } from '../queues.js'; // Your BullMQ scrape queue
+import { redisSubscriber } from '../lib/redisClient.js'; // For SSE
+import { v4 as uuidv4 } from 'uuid'; // To generate researchJobId if not using DB sequence
+
+const router = express.Router();
+
+// Define Zod schema for POST /research request body
+const createResearchJobSchema = z.object({
+  businessId: z.string().uuid(), // Assuming businessId is UUID
+  urls: z.array(z.string().url()).min(1, "At least one URL is required."),
+  // Add any other fields you expect, like research_topic
+  researchTopic: z.string().optional(), // Example
+});
+
+// POST /api/research - Start a new research job
+router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const validation = createResearchJobSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ error: "Invalid request body", details: validation.error.format() });
+    }
+
+    const { businessId, urls, researchTopic } = validation.data;
+
+    // 1. Create an entry in your research_jobs table
+    // IMPORTANT: Ensure 'id' in research_jobs is UUID or handle type differences.
+    // If 'id' is auto-incrementing BIGINT, you don't need to generate UUID here.
+    const researchJobId = uuidv4(); // Generate a UUID for the job
+
+    const { data: newJob, error: insertError } = await supabase
+      .from('research_jobs')
+      .insert({
+        id: researchJobId, // Provide the ID if it's UUID and not auto-generated by DB
+        business_id: businessId,
+        status: 'queued_scrape', // New initial status
+        // user_id: req.user.id, // TODO: Get user ID from auth middleware
+        prompt_text: researchTopic || `Research for URLs: ${urls.join(', ')}`, // Example of storing some context
+        // urls_to_scrape: urls, // Consider adding a column for this
+      })
+      .select('id') // Select the ID to confirm
+      .single();
+
+    if (insertError || !newJob) {
+      console.error("Error creating research job entry:", insertError);
+      return res.status(500).json({ error: "Could not create research job." });
+    }
+
+    // 2. Add job to the scrapeQueue
+    await scrapeQ.add('scrape_urls', { researchJobId: newJob.id, urls });
+    
+    console.log(`[API] Research job ${newJob.id} queued for scraping. URLs: ${urls.join(', ')}`);
+    res.status(202).json({ message: 'Research job accepted.', researchJobId: newJob.id });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/research/:id - Get research job status and result
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { data: job, error } = await supabase
+      .from('research_jobs')
+      .select('id, status, result, finished_at, created_at, credits_used, prompt_text') // Add prompt_text or other relevant fields
+      .eq('id', id)
+      // .eq('user_id', req.user.id) // TODO: Scope to user
+      .single();
+
+    if (error) throw error;
+    if (!job) return res.status(404).json({ error: "Research job not found." });
+
+    res.json(job);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/research/:id/stream - Stream research updates using SSE
+router.get('/:id/stream', async (req: Request, res: Response) => {
+  const { id: researchJobId } = req.params;
+  console.log(`[API-SSE] Client connected for research stream: ${researchJobId}`);
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders(); // Send headers immediately
+
+  const channel = `research:${researchJobId}`;
+  
+  const messageHandler = (message: string, channelName: string) => {
+    if (channelName === channel) {
+      res.write(`data: ${message}\n\n`);
+    }
+  };
+
+  // Use a new subscriber client or ensure your existing one supports multiple subscriptions
+  const subscriber = redisSubscriber.duplicate(); // Duplicate for this specific connection
+  await subscriber.connect();
+  await subscriber.subscribe(channel, messageHandler);
+
+  // Heartbeat to keep connection alive (optional, some proxies might need it)
+  const heartbeatInterval = setInterval(() => {
+    res.write(': heartbeat\n\n');
+  }, 20000);
+
+  req.on('close', async () => {
+    console.log(`[API-SSE] Client disconnected from research stream: ${researchJobId}`);
+    clearInterval(heartbeatInterval);
+    await subscriber.unsubscribe(channel);
+    await subscriber.quit(); // Close the duplicated client
+  });
+});
+
+export default router;
+Use code with caution.
+TypeScript
+Ensure this router is mounted in your main backend/src/server.ts under /api/research:
+// In backend/src/server.ts
+// ... other imports
+import researchRoutes from './routes/researchRoutes.js'; // Make sure path is correct
+// ...
+// app.use('/api/research', researchRoutes); // Your existing research route
+// Mount the new/updated research routes
+app.use('/api/research', researchRoutes); // If you replaced the content of researchRoutes.ts
+// ...
+Use code with caution.
+TypeScript
+Update package.json Scripts to Run Workers:
+In your root package.json, add/modify scripts in scripts section:
+{
+  "scripts": {
+    // ... your existing scripts ...
+    "dev:api": "nodemon --watch dist --ext js --exec npm run start:api",
+    "dev:worker": "nodemon --watch dist --ext js --exec npm run start:worker", // Your existing imageWorker
+    "dev:research-worker": "nodemon --watch dist --ext js --exec npm run start:research-worker", // Your old research worker (to be removed or repurposed)
+    "dev:scrape-worker": "nodemon --watch dist --ext js --exec npm run start:scrape-worker",
+    "dev:reasoning-worker": "nodemon --watch dist --ext js --exec npm run start:reasoning-worker",
+
+    "start:api": "node --env-file=.env dist/src/server.js",
+    "start:worker": "node --env-file=.env dist/src/workers/imageWorker.js", // Your existing imageWorker
+    "start:research-worker": "node --env-file=.env dist/src/workers/researchWorker.js", // Your old research worker
+    "start:scrape-worker": "node --env-file=.env dist/src/workers/scrapeWorker.js",
+    "start:reasoning-worker": "node --env-file=.env dist/src/workers/o3ReasoningWorker.js",
+    "start:distribution": "node --env-file=.env dist/src/workers/distributionWorker.js",
+
+
+    "dev": "npm run build:backend && npm-run-all -p watch:backend dev:web dev:api dev:worker dev:scrape-worker dev:reasoning-worker dev:research-worker", // Add new dev workers
+    "dev:full": "npm run build:backend && npm-run-all -p watch:backend dev:web start:api start:worker start:distribution start:scrape-worker start:reasoning-worker start:research-worker" // Add new start workers
+  },
+  // ...
+}
+Use code with caution.
+Json
+Important: You'll likely want to remove your old start:research-worker and dev:research-worker once the new system is confirmed to work.
+IV. Frontend Implementation
+Add New Components:
+Create these in src/components/research/ (or a suitable subdirectory).
+src/components/research/LinearProgress.tsx:
+// src/components/research/LinearProgress.tsx
+import React from 'react';
+import { Progress } from '@/components/ui/progress'; // Assuming you have this shadcn component
+
+interface LinearProgressProps {
+  label: string;
+  value?: number; // Optional: if you want to show determinate progress
+}
+
+const LinearProgress: React.FC<LinearProgressProps> = ({ label, value }) => {
+  return (
+    <div className="w-full max-w-md mx-auto my-8 p-4 border rounded-lg shadow">
+      <p className="text-lg font-semibold mb-2 text-center">{label}</p>
+      {value !== undefined ? (
+        <Progress value={value} className="w-full" />
+      ) : (
+        // Indeterminate progress simulation
+        <div className="relative w-full h-2 bg-secondary overflow-hidden rounded-full">
+          <div className="absolute h-full w-1/2 bg-primary animate-pulse-linear"></div>
+        </div>
+      )}
+      <style jsx global>{`
+        @keyframes pulse-linear {
+          0% { transform: translateX(-100%); }
+          50% { transform: translateX(150%); }
+          100% { transform: translateX(150%); }
+        }
+        .animate-pulse-linear {
+          animation: pulse-linear 2s infinite linear;
+        }
+      `}</style>
+    </div>
+  );
+};
+export default LinearProgress;
+Use code with caution.
+Tsx
+Add to tailwind.config.ts if animate-pulse-linear doesn't work or use Tailwind's built-in pulse with custom animation definition.
+For simplicity, an indeterminate progress bar can be made simpler without custom CSS animation if you have a Progress component that supports indeterminate state. Or, just show a loading spinner.
+src/components/research/CompetitorCards.tsx:
+// src/components/research/CompetitorCards.tsx
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ExternalLink } from 'lucide-react';
+
+interface Competitor {
+  name: string;
+  strategy: string;
+  urls: string[];
+}
+
+interface CompetitorCardsProps {
+  data?: Competitor[];
+}
+
+const CompetitorCards: React.FC<CompetitorCardsProps> = ({ data }) => {
+  if (!data || data.length === 0) {
+    return <p className="text-center my-8 text-muted-foreground">No competitor data found or still loading.</p>;
+  }
+
+  return (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 my-8">
+      {data.map((competitor, index) => (
+        <Card key={index} className="flex flex-col">
+          <CardHeader>
+            <CardTitle className="text-xl">{competitor.name}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex-grow">
+            <CardDescription className="text-sm mb-3 leading-relaxed">
+              <span className="font-semibold">Strategy:</span> {competitor.strategy}
+            </CardDescription>
+            <div className="mt-auto">
+              <p className="font-semibold mb-1 text-sm">Relevant URLs:</p>
+              <div className="flex flex-wrap gap-2">
+                {competitor.urls.map((url, urlIndex) => (
+                  <a
+                    key={urlIndex}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs"
+                  >
+                    <Badge variant="secondary" className="hover:bg-primary/20">
+                      {new URL(url).hostname} <ExternalLink size={12} className="ml-1" />
+                    </Badge>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+export default CompetitorCards;
+Use code with caution.
+Tsx
+Add New Hook:
+Create src/hooks/useResearchJob.tsx:
+// src/hooks/useResearchJob.tsx
+import { useEffect, useState, useCallback } from "react";
+import { useQuery, useQueryClient } from '@tanstack/react-query'; // Using your existing query library
+import LinearProgress from "@/components/research/LinearProgress";
+import CompetitorCards from "@/components/research/CompetitorCards";
+
+interface Competitor {
+  name: string;
+  strategy: string;
+  urls: string[];
+}
+interface ResearchJob {
+  id: string;
+  status: 'queued_scrape' | 'scraping' | 'reasoning' | 'completed' | 'error' | 'pending';
+  result?: { competitors?: Competitor[], error?: string }; // result can have error string
+  // other fields from your DB
+  prompt_text?: string;
+  credits_used?: number;
+  finished_at?: string;
+}
+
+interface StreamedData {
+  type: "data" | "error" | "done";
+  payload?: { competitors?: Competitor[] };
+  message?: string;
+  details?: string;
+}
+
+
+const fetchResearchJob = async (jobId: string): Promise<ResearchJob | null> => {
+  if (!jobId) return null;
+  const res = await fetch(`/api/research/${jobId}`);
+  if (!res.ok) {
+    if (res.status === 404) return null; // Or throw error to be caught by useQuery
+    throw new Error(`Failed to fetch research job ${jobId}: ${res.statusText}`);
+  }
+  return res.json();
+};
+
+export default function useResearchJob(jobId: string | null) {
+  const queryClient = useQueryClient();
+  const [streamedCompetitors, setStreamedCompetitors] = useState<Competitor[]>([]);
+  const [streamError, setStreamError] = useState<string | null>(null);
+
+  const { data: job, isLoading, error: queryError, refetch } = useQuery<ResearchJob | null, Error>({
+    queryKey: ['researchJob', jobId],
+    queryFn: () => fetchResearchJob(jobId!),
+    enabled: !!jobId,
+    refetchInterval: (query) => {
+        const jobData = query.state.data as ResearchJob | undefined;
+        return (jobData?.status !== 'completed' && jobData?.status !== 'error') ? 5000 : false;
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (!jobId || !job || (job.status !== 'reasoning' && job.status !== 'scraping' && job.status !== 'queued_scrape' && streamedCompetitors.length > 0)) {
+      // Don't start event source if job is completed/errored, or if we have already streamed some data and job is not in reasoning anymore
+      // Or if job not in a state that expects streaming updates for competitors
+      return;
+    }
+    
+    // If job status becomes reasoning, reset streamed competitors from previous runs if any
+    if (job.status === 'reasoning' || job.status === 'scraping' || job.status === 'queued_scrape') {
+        setStreamedCompetitors([]);
+        setStreamError(null);
+    }
+
+    if (job.status !== 'reasoning') return; // Only stream if job is in reasoning state
+
+    console.log(`[useResearchJob] Job ${jobId} is '${job.status}'. Setting up EventSource.`);
+    const es = new EventSource(`/api/research/${jobId}/stream`);
+
+    es.onmessage = (e) => {
+      try {
+        const parsedData: StreamedData = JSON.parse(e.data);
+        console.log("[useResearchJob] SSE Message:", parsedData);
+
+        if (parsedData.type === "data" && parsedData.payload?.competitors) {
+          setStreamedCompetitors(parsedData.payload.competitors);
+        } else if (parsedData.type === "error") {
+          setStreamError(parsedData.message || "An error occurred during research processing.");
+          console.error("[useResearchJob] Stream error:", parsedData.message, parsedData.details);
+          es.close(); // Close on stream error
+        } else if (parsedData.type === "done") {
+          console.log("[useResearchJob] Stream marked as done.");
+          queryClient.invalidateQueries({ queryKey: ['researchJob', jobId] }); // Refetch final job state
+          es.close();
+        }
+      } catch (err) {
+        console.error("[useResearchJob] Failed to parse SSE message:", e.data, err);
+        setStreamError("Received malformed data from server.");
+        es.close();
+      }
+    };
+
+    es.onerror = (e) => {
+      console.error("[useResearchJob] EventSource failed:", e);
+      setStreamError("Connection to research stream lost.");
+      es.close();
+    };
+
+    return () => {
+      console.log(`[useResearchJob] Cleaning up EventSource for job ${jobId}.`);
+      es.close();
+    };
+  }, [jobId, job?.status, queryClient]); // Rerun effect if job status changes
+
+  if (!jobId) return { display: null, job: null, isLoading: false, error: null, refetch };
+
+  if (isLoading) return { display: <LinearProgress label="Loading research job details..." />, job, isLoading, error: queryError, refetch };
+  if (queryError) return { display: <p className="text-red-500">Error loading job: {queryError.message}</p>, job, isLoading, error: queryError, refetch };
+  if (!job) return { display: <p>Research job not found.</p>, job, isLoading, error: null, refetch };
+
+  // Display logic based on job status
+  if (job.status === 'queued_scrape' || job.status === 'scraping') {
+    return { display: <LinearProgress label="Scraping websites..." />, job, isLoading, error: null, refetch };
+  }
+  if (job.status === 'reasoning') {
+    if (streamError) return { display: <p className="text-red-500">Stream Error: {streamError}</p>, job, isLoading, error: streamError, refetch };
+    return { 
+      display: (
+        <>
+          <LinearProgress label="Analyzing competitors & generating insights..." />
+          {streamedCompetitors.length > 0 && <CompetitorCards data={streamedCompetitors} />}
+        </>
+      ), 
+      job, isLoading, error: null, refetch 
+    };
+  }
+  if (job.status === 'completed') {
+    // Use final result from job object, but fallback to streamed if result is somehow empty
+    const displayData = job.result?.competitors && job.result.competitors.length > 0 
+                        ? job.result.competitors 
+                        : streamedCompetitors;
+    return { display: <CompetitorCards data={displayData} />, job, isLoading, error: null, refetch };
+  }
+  if (job.status === 'error') {
+    return { display: <p className="text-red-500">Research failed: {job.result?.error || "Unknown error"}</p>, job, isLoading, error: job.result?.error, refetch };
+  }
+
+  return { display: <p>Current status: {job.status}</p>, job, isLoading, error: null, refetch }; // Fallback
+}
+Use code with caution.
+Tsx
+Integrate into ResearchPage.tsx:
+You currently have src/pages/dashboard/ResearchPage.tsx. You'll need to modify it to:
+Allow users to input URLs (and optionally a research topic).
+Call the POST /api/research endpoint to start a job. This will give a researchJobId.
+Store this researchJobId (e.g., in state, or navigate to /dashboard/research/:jobId).
+Use the useResearchJob(researchJobId) hook to display progress and results.
+Example snippet for ResearchPage.tsx:
+// src/pages/dashboard/ResearchPage.tsx
+// ... other imports ...
+import { useState }  from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import useResearchJob from '@/hooks/useResearchJob';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea'; // For multiple URLs
+import { useBusiness } from '@/providers/BusinessProvider'; // To get businessId
+import { toast } from '@/components/ui/use-toast'; // Or your preferred toast
+
+export const ResearchPage = () => {
+  const { jobId: jobIdFromParams } = useParams<{ jobId?: string }>();
+  const navigate = useNavigate();
+  const { currentBusiness } = useBusiness();
+
+  const [inputUrls, setInputUrls] = useState('');
+  const [researchTopic, setResearchTopic] = useState(''); // Optional
+  const [currentJobId, setCurrentJobId] = useState<string | null>(jobIdFromParams || null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // useResearchJob hook will manage displaying progress/results for currentJobId
+  const { display: researchJobDisplay, job: currentJobDetails, isLoading: jobIsLoading, error: jobError, refetch: refetchJob } = useResearchJob(currentJobId);
+
+  const handleStartResearch = async () => {
+    if (!currentBusiness?.id) {
+      toast({ title: "Error", description: "No active business selected.", variant: "destructive" });
+      return;
+    }
+    const urls = inputUrls.split('\n').map(url => url.trim()).filter(url => url.length > 0);
+    if (urls.length === 0) {
+      toast({ title: "Error", description: "Please enter at least one URL.", variant: "destructive" });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/research', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessId: currentBusiness.id,
+          urls,
+          researchTopic,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+      toast({ title: "Success", description: "Research job started!" });
+      setCurrentJobId(data.researchJobId); // Update currentJobId to trigger useResearchJob
+      navigate(`/dashboard/research/${data.researchJobId}`, { replace: true }); // Navigate to the job-specific URL
+    } catch (error) {
+      console.error("Failed to start research job:", error);
+      toast({ title: "Error", description: `Failed to start research: ${(error as Error).message}`, variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // If there's a jobId in params, set it on component mount or when params change
+  useEffect(() => {
+    if (jobIdFromParams) {
+      setCurrentJobId(jobIdFromParams);
+    }
+  }, [jobIdFromParams]);
+
+
+  return (
+    <div className="container mx-auto p-4 md:p-8">
+      <h1 className="text-3xl font-bold mb-6">Market & Competitor Research</h1>
+      
+      {/* Form to start new research */}
+      {!currentJobId && ( // Only show form if no job is active or loaded via URL
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Start New Research</CardTitle>
+            <CardDescription>Enter competitor URLs (one per line) to analyze.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="research-urls">Competitor URLs (one per line)</Label>
+              <Textarea
+                id="research-urls"
+                placeholder="https://competitor1.com\nhttps://competitor2.com"
+                value={inputUrls}
+                onChange={(e) => setInputUrls(e.target.value)}
+                rows={5}
+                disabled={isSubmitting}
+              />
+            </div>
+            <div>
+              <Label htmlFor="research-topic">Research Focus (Optional)</Label>
+              <Input
+                id="research-topic"
+                placeholder="e.g., their pricing strategy, main product features"
+                value={researchTopic}
+                onChange={(e) => setResearchTopic(e.target.value)}
+                disabled={isSubmitting}
+              />
+            </div>
+            <Button onClick={handleStartResearch} disabled={isSubmitting || !inputUrls.trim()}>
+              {isSubmitting ? 'Starting Research...' : 'Start Research'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Display for current/loaded research job */}
+      {currentJobId && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">Research Job: {currentJobId}</h2>
+            <Button onClick={() => { setCurrentJobId(null); navigate('/dashboard/research'); }} variant="outline" size="sm">
+              Start New Research
+            </Button>
+          </div>
+          {currentJobDetails?.prompt_text && <p className="mb-2 text-sm text-muted-foreground">Focus: {currentJobDetails.prompt_text}</p>}
+          {researchJobDisplay}
+          {currentJobDetails && (currentJobDetails.status === 'completed' || currentJobDetails.status === 'error') && (
+            <Button onClick={() => refetchJob()} className="mt-4" variant="ghost" disabled={jobIsLoading}>
+              {jobIsLoading ? "Refreshing..." : "Refresh Job"}
+            </Button>
+          )}
+        </div>
+      )}
+      
+      {/* TODO: List past research jobs for the business */}
+    </div>
+  );
+};
+Use code with caution.
+Tsx
+Make sure your App.tsx routes are set up correctly to handle /dashboard/research/:jobId. It seems you already have this:
+<Route path="/dashboard/research/:jobId" element={<ProtectedRoute><ResearchPage /></ProtectedRoute>} />
+V. Testing and Refinement
+Start All Services:
+Ensure Redis is running.
+Run npm run dev (or npm run dev:full if you configured that) which should start:
+Vite dev server (frontend)
+Express API server (backend)
+All BullMQ workers (imageWorker, distributionWorker, scrapeWorker, o3ReasoningWorker).
+Test the Flow:
+Navigate to your research page.
+Enter URLs and start a new research job.
+Check browser console for SSE messages and any errors.
+Check backend terminal logs for worker activity, API calls, and errors.
+Check Redis (e.g., using redis-cli monitor) to see queue activity and pub/sub messages.
+Verify data is updated in the research_jobs table in Supabase.
+Verify the frontend displays progress and then results correctly.
+Iterate and Debug: This is a complex integration. Expect to debug issues related to:
+Environment variable loading.
+Queue connections.
+Supabase client permissions/queries.
+OpenAI API calls (quotas, model availability, response parsing).
+Firecrawl API calls.
+SSE connection stability and message parsing.
+Type mismatches (especially around jobId).
+VI. Removing Old Research Functionality
+Once the new system is stable:
+Remove the old backend/src/workers/researchWorker.ts.
+Remove its startup script from package.json.
+Clean up backend/src/lib/webUtils.ts if parts of it are no longer needed by other functionalities.
+Remove any old research-related routes or frontend code that is now redundant.
