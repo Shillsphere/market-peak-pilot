@@ -6,10 +6,23 @@ import { supabase } from "../lib/supabase.js"; // Your existing Supabase admin c
 import { reasoningQ } from "../lib/queue.js"; // Adjusted path to use the modified queue.ts
 import { redisClient } from '../lib/redisClient.js';
 
-async function scrape(job: Job) {
+// Define interfaces for job data structure
+interface ScrapeJobData {
+  researchJobId: string;
+  urls: string[];
+}
+
+// Define interface for what is sent to reasoningWorker
+interface ReasoningJobPayload {
+  researchJobId: string;
+  detailed_pages_data: { url: string; markdown: string | null; error?: string }[];
+  researchTopic: string; // Crucial: ensure this is included
+}
+
+async function scrape(job: Job<ScrapeJobData>) {
   console.log(`[ScrapeWorker] Processing job ${job.id} for research ID: ${job.data.researchJobId}`);
-  const { researchJobId, urls } = job.data as { researchJobId: string; urls: string[] };
-  const pages_md: string[] = []; // Renamed back to pages_md to match reasoningQ expectation
+  const { researchJobId, urls } = job.data;
+  const detailed_pages_data: { url: string; markdown: string | null; error?: string }[] = [];
 
   if (!process.env.FIRECRAWL_API_KEY) {
     console.error("[ScrapeWorker] FIRECRAWL_API_KEY not set. Cannot scrape.");
@@ -31,15 +44,15 @@ async function scrape(job: Job) {
             scrapedText = (scrapeResult as any).markdown;
         } else if (scrapeResult && (scrapeResult as any).success === false && (scrapeResult as any).error) { 
             console.warn(`[ScrapeWorker] Firecrawl API returned failure for URL ${url} (job ${researchJobId}): ${(scrapeResult as any).error}`);
-            pages_md.push(`Error scraping ${url}: Firecrawl reported - ${(scrapeResult as any).error}`);
+            detailed_pages_data.push({ url, markdown: null, error: `Firecrawl reported - ${(scrapeResult as any).error}` });
         } else {
             console.warn(`[ScrapeWorker] No extractable markdown or unexpected response for URL: ${url} (job ${researchJobId}). Response:`, JSON.stringify(scrapeResult, null, 2));
-            pages_md.push(`Error scraping ${url}: No extractable markdown or unexpected structure.`);
+            detailed_pages_data.push({ url, markdown: null, error: 'No extractable markdown or unexpected structure.' });
         }
 
         if (scrapedText && scrapedText.length > 0) {
             console.log(`[ScrapeWorker] Successfully scraped markdown for ${url} (job ${researchJobId}). Length: ${scrapedText.length}`);
-            pages_md.push(scrapedText);
+            detailed_pages_data.push({ url, markdown: scrapedText });
         } else if (!(scrapeResult && (scrapeResult as any).success === false)) {
             console.warn(`[ScrapeWorker] Markdown text was null for ${url} (job ${researchJobId}), though no explicit Firecrawl error was reported in the response object.`);
         }
@@ -52,14 +65,45 @@ async function scrape(job: Job) {
         } else if (error.response && error.response.data && typeof error.response.data.message === 'string') { 
             detailedErrorMessage = `Firecrawl Error (from exception response data): ${error.response.data.message}`;
         }
-        pages_md.push(`Error scraping ${url}: ${detailedErrorMessage}`);
+        detailed_pages_data.push({ url, markdown: null, error: detailedErrorMessage });
     }
   }
 
-  console.log(`[ScrapeWorker] Processed ${urls.length} URL(s) for job ${researchJobId}. Found ${pages_md.length} valid markdown pages. Enqueuing for reasoning.`);
+  console.log(`[ScrapeWorker] Processed ${urls.length} URL(s) for job ${researchJobId}. Found ${detailed_pages_data.filter(p => p.markdown).length} valid markdown pages.`);
   
-  if (pages_md.length > 0) {
-      await reasoningQ.add("reason", { researchJobId, pages_md });
+  // **** FETCH researchTopic (prompt_text) from the database ****
+  console.log(`[ScrapeWorker] Fetching researchTopic for research ID ${researchJobId}`);
+  const { data: jobDetails, error: jobDetailsError } = await supabase
+    .from('research_jobs')
+    .select('prompt_text') // This column stores your researchTopic
+    .eq('id', researchJobId)
+    .single();
+
+  if (jobDetailsError || !jobDetails) {
+    console.error(`[ScrapeWorker] CRITICAL: Could not fetch job details (prompt_text) for research ID ${researchJobId}:`, jobDetailsError);
+    // This is a critical failure, the reasoning worker needs the topic. Mark job as error.
+    await supabase.from('research_jobs').update({ 
+        status: 'error', 
+        result: { error: 'Failed to retrieve research topic for analysis.' },
+        finished_at: new Date().toISOString()
+    }).eq('id', researchJobId);
+    throw new Error(`Failed to retrieve job details for ${researchJobId}`); // Fail the BullMQ job
+  }
+  
+  const researchTopic = jobDetails.prompt_text; // This is the user's original research focus
+  console.log(`[ScrapeWorker] researchTopic fetched for ${researchJobId}: "${researchTopic}"`);
+  
+  if (detailed_pages_data.filter(p => p.markdown).length > 0) {
+    // Only enqueue for reasoning if there's actual content AND we have a research topic
+    if (researchTopic !== null && researchTopic !== undefined) {
+      const payloadForReasoning: ReasoningJobPayload = { // Use the defined interface
+        researchJobId,
+        detailed_pages_data,
+        researchTopic // Pass the fetched topic
+      };
+      await reasoningQ.add("reason", payloadForReasoning);
+      console.log(`[ScrapeWorker] Enqueued job for reasoning for research ID ${researchJobId} with topic "${researchTopic}"`);
+
       const { error: updateError } = await supabase
           .from('research_jobs')
           .update({ status: 'reasoning' })
@@ -67,6 +111,17 @@ async function scrape(job: Job) {
       if (updateError) {
           console.error(`[ScrapeWorker] Error updating research_job ${researchJobId} status to 'reasoning':`, updateError);
       }
+    } else {
+      console.error(`[ScrapeWorker] Research topic was missing for job ${researchJobId}. Cannot proceed to reasoning.`);
+      await supabase
+        .from('research_jobs')
+        .update({ 
+          status: 'error', 
+          result: { error: 'Research topic was missing, cannot proceed to reasoning.' }, 
+          finished_at: new Date().toISOString() 
+        })
+        .eq('id', researchJobId);
+    }
   } else {
       console.warn(`[ScrapeWorker] No pages scraped successfully for job ${researchJobId}. Marking as error.`);
       const { error: updateError } = await supabase
@@ -76,17 +131,15 @@ async function scrape(job: Job) {
       if (updateError) {
           console.error(`[ScrapeWorker] Error updating research_job ${researchJobId} status to 'error' (no content):`, updateError);
       }
-      // Do not throw an error here to allow BullMQ to mark the job as completed (though failed in terms of outcome)
-      // If we throw, BullMQ might retry if attempts are configured.
   }
 }
 
 console.log('[ScrapeWorker] Initializing...');
-new Worker("scrape", scrape, {
+new Worker<ScrapeJobData>("scrape", scrape, {
     connection: redisClient.duplicate(),
     concurrency: parseInt(process.env.SCRAPE_CONCURRENCY || "3"),
 })
-.on('completed', (job, result) => console.log(`[ScrapeWorker] Job ${job.id} (research ID: ${job.data.researchJobId}) completed.`))
+.on('completed', (job) => console.log(`[ScrapeWorker] Job ${job.id} (research ID: ${job.data.researchJobId}) completed.`))
 .on('failed', async (job, err) => {
   console.error(`[ScrapeWorker] Job ${job?.id} (research ID: ${job?.data.researchJobId}) failed:`, err.message);
   if (job?.data.researchJobId) {
@@ -94,5 +147,5 @@ new Worker("scrape", scrape, {
   }
 });
 
-// console.log('[ScrapeWorker] Worker started and listening for scrape jobs.'); // Redundant after initialization log
+console.log('[ScrapeWorker] Worker started and listening for scrape jobs.');
  
