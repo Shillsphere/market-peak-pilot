@@ -44,19 +44,19 @@ const plans = [
     description: "Content gen + hyper-local insights",
     features: [
       {
-        text: "30 AI social posts / mo (1 platform)",
+        text: "Access to content/video creation",
         icon: "🤖"
       },
       {
-        text: "Zip-code competitor snapshot",
+        text: "Competitor and market deep research",
         icon: "🗺️"
       },
       {
-        text: "LocalPulse™ traffic & search dashboard",
+        text: "General AI agent (great for most tasks)",
         icon: "📊"
       },
       {
-        text: "AI-powered deep-dive market insights",
+        text: "More coming soon...",
         icon: "🔍"
       }
     ],
