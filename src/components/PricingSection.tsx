@@ -290,7 +290,7 @@ const PricingSection = () => {
         
         {/* Promo banner */}
         <div className="mt-8 bg-[#5F42FF] text-white p-3 rounded-md text-center text-sm md:text-base">
-          <strong>Early-adopter offer:</strong> sign up for Automation Partner before July 31 2025 and your first month is free. Pay annually and we'll also waive the $750 onboarding fee.
+          <strong>Early-adopter offer:</strong> sign up for Automation Partner before July 31 2025 and your first month is free.
         </div>
         
         {/* Footnotes */}
