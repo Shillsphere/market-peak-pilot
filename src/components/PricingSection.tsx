@@ -39,6 +39,7 @@ const plans = [
     priceMonthly: "$99",
     priceYearly: "$1,089",
     period: "per month",
+    periodYearly: "per year",
     yearlyNote: "1 month free when billed yearly",
     description: "Content gen + hyper-local insights",
     features: [
@@ -53,6 +54,10 @@ const plans = [
       {
         text: "LocalPulse™ traffic & search dashboard",
         icon: "📊"
+      },
+      {
+        text: "AI-powered deep-dive market insights",
+        icon: "🔍"
       }
     ],
     cta: "Start Free Trial",
@@ -65,33 +70,30 @@ const plans = [
     priceMonthly: "$299",
     priceYearly: "$3,289",
     period: "per month",
+    periodYearly: "per year",
     yearlyNote: "1 month free when billed yearly",
-    onboarding: "+ $750 onboarding* (waived if annual)",
+    onboarding: "+ $750 one-time onboarding fee (always applies)",
     description: "Custom AI agents & full CRM automation",
     features: [
       {
-        text: "Custom n8n lead & nurture workflows",
+        text: "Custom AI agents for content generation & distribution",
         icon: "🤖"
       },
       {
-        text: "AI lead scoring + enrichment (Clearbit)",
+        text: "Deep research + AI lead scoring & enrichment (Clearbit)",
         icon: "🗺️"
       },
       {
-        text: "AI-generated email / SMS drip",
+        text: "Automated email & SMS campaigns",
         icon: "📊"
       },
       {
         text: "Monthly 30-min strategy call",
-        icon: "🤖"
-      },
-      {
-        text: "Dedicated Slack channel",
-        icon: "🗺️"
+        icon: "📞"
       },
       {
         text: "Priority chat support (≤ 5 users)",
-        icon: "📊"
+        icon: "💬"
       }
     ],
     cta: "Get 1 Month Free",
@@ -104,7 +106,8 @@ const plans = [
     priceMonthly: "Quote",
     priceYearly: "",
     period: "",
-    yearlyNote: "Starts ≈ $750 / mo",
+    periodYearly: "",
+    yearlyNote: "",
     description: "Enterprise-grade AI & on-site strategy",
     features: [
       {
@@ -121,11 +124,11 @@ const plans = [
       },
       {
         text: "Quarterly on-site workshop",
-        icon: "🤖"
+        icon: "🤝"
       },
       {
-        text: "Unlimited users | 1-day SLA",
-        icon: "🗺️"
+        text: "Unlimited users ▸ 1-day SLA",
+        icon: "👥"
       }
     ],
     cta: "Talk to an Expert",
@@ -222,7 +225,10 @@ const PricingSection = () => {
                     <span className="text-4xl font-semibold text-[#1C1C1C]">
                       {billingInterval === "yearly" && plan.priceYearly ? plan.priceYearly : plan.priceMonthly}
                     </span>
-                    {plan.period && <span className="ml-2 text-[#333]">{plan.period}</span>}
+                    {(billingInterval === "yearly" ? 
+                      (plan.periodYearly && <span className="ml-2 text-[#333]">{plan.periodYearly}</span>) : 
+                      (plan.period && <span className="ml-2 text-[#333]">{plan.period}</span>)
+                    )}
                   </div>
                   {billingInterval === "yearly" && plan.yearlyNote && (
                     <p className="text-sm text-[#777] mt-1">{plan.yearlyNote}</p>
@@ -290,7 +296,7 @@ const PricingSection = () => {
         {/* Footnotes */}
         <div className="mt-4 text-center text-[11px] text-[#777]">
           <p>*Onboarding fee covers custom workflow build-out and CRM integration.</p>
-          <p>All automations run on our private infrastructure—no n8n license fees, ever.</p>
+          <p>All automations run on our private infrastructure—no license fees, ever.</p>
         </div>
         
         {/* Free Audit Section */}
