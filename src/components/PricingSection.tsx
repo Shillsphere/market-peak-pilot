@@ -40,7 +40,7 @@ const plans = [
     period: "per month",
     periodYearly: "per year",
     yearlyNote: "1 month free when billed yearly",
-    description: "Content gen + hyper-local insights",
+    description: "Content gen + hyper-local insights & AI consulting",
     features: [
       {
         text: "Access to content/video creation",
