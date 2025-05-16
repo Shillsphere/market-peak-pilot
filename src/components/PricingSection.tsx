@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Check, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -76,11 +75,11 @@ const plans = [
     description: "Custom AI agents & full CRM automation",
     features: [
       {
-        text: "Custom AI agents for content generation & distribution",
+        text: "Everything in Local Launch",
         icon: "🤖"
       },
       {
-        text: "Deep research + AI lead scoring & enrichment (Clearbit)",
+        text: "Custom AI agents for your specific needs (CRM, etc.)",
         icon: "🗺️"
       },
       {
@@ -115,11 +114,11 @@ const plans = [
         icon: "🤖"
       },
       {
-        text: "Advanced ads autopilot (FB/IG + SMS)",
+        text: "Advanced ads on autopilot",
         icon: "🗺️"
       },
       {
-        text: "Custom POS / CRM dashboards",
+        text: "Advanced competitor maps",
         icon: "📊"
       },
       {
@@ -127,7 +126,7 @@ const plans = [
         icon: "🤝"
       },
       {
-        text: "Unlimited users ▸ 1-day SLA",
+        text: "Book a call",
         icon: "👥"
       }
     ],
