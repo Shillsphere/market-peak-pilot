@@ -415,6 +415,48 @@ export type Database = {
           },
         ]
       }
+      owl_tasks: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          input_params: Json | null
+          owl_service_task_id: string | null
+          progress: number | null
+          result: Json | null
+          status: string | null
+          task_type: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          input_params?: Json | null
+          owl_service_task_id?: string | null
+          progress?: number | null
+          result?: Json | null
+          status?: string | null
+          task_type: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          input_params?: Json | null
+          owl_service_task_id?: string | null
+          progress?: number | null
+          result?: Json | null
+          status?: string | null
+          task_type?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       post_metrics: {
         Row: {
           business_id: string | null
@@ -533,6 +575,35 @@ export type Database = {
           },
         ]
       }
+      reasoning_queue: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_id: string | null
+          pages_md: string[]
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          pages_md: string[]
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          pages_md?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reasoning_queue_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "research_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       research_docs: {
         Row: {
           content: string | null
@@ -578,21 +649,28 @@ export type Database = {
           business_id: string
           cost_usd: number | null
           created_at: string | null
+          credits_used: number | null
           error: string | null
           finished_at: string | null
           firecrawl_data: Json | null
           firecrawl_job_id: string | null
           id: string
           prompt: string | null
+          prompt_text: string | null
+          question: string | null
           raw_firecrawl: Json | null
           requires_webhook: boolean | null
+          research_topic: string | null
+          result: Json | null
           sources: Json | null
           started_at: string | null
           status: string
           status_details: string | null
           summary_md: string | null
           total_cost: number | null
-          user_id: string
+          updated_at: string | null
+          urls: string[] | null
+          user_id: string | null
           webhook_secret: string | null
           webhook_type: string | null
         }
@@ -602,21 +680,28 @@ export type Database = {
           business_id: string
           cost_usd?: number | null
           created_at?: string | null
+          credits_used?: number | null
           error?: string | null
           finished_at?: string | null
           firecrawl_data?: Json | null
           firecrawl_job_id?: string | null
           id?: string
           prompt?: string | null
+          prompt_text?: string | null
+          question?: string | null
           raw_firecrawl?: Json | null
           requires_webhook?: boolean | null
+          research_topic?: string | null
+          result?: Json | null
           sources?: Json | null
           started_at?: string | null
           status?: string
           status_details?: string | null
           summary_md?: string | null
           total_cost?: number | null
-          user_id: string
+          updated_at?: string | null
+          urls?: string[] | null
+          user_id?: string | null
           webhook_secret?: string | null
           webhook_type?: string | null
         }
@@ -626,21 +711,28 @@ export type Database = {
           business_id?: string
           cost_usd?: number | null
           created_at?: string | null
+          credits_used?: number | null
           error?: string | null
           finished_at?: string | null
           firecrawl_data?: Json | null
           firecrawl_job_id?: string | null
           id?: string
           prompt?: string | null
+          prompt_text?: string | null
+          question?: string | null
           raw_firecrawl?: Json | null
           requires_webhook?: boolean | null
+          research_topic?: string | null
+          result?: Json | null
           sources?: Json | null
           started_at?: string | null
           status?: string
           status_details?: string | null
           summary_md?: string | null
           total_cost?: number | null
-          user_id?: string
+          updated_at?: string | null
+          urls?: string[] | null
+          user_id?: string | null
           webhook_secret?: string | null
           webhook_type?: string | null
         }
