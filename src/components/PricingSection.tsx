@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Check, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ const plans = [
     period: "per month",
     periodYearly: "per year",
     yearlyNote: "1 month free when billed yearly",
-    description: "Content gen + hyper-local insights & AI consulting",
+    description: "Content gen + hyper-local insights",
     features: [
       {
         text: "Access to content/video creation",
