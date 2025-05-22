@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Check, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -151,7 +150,7 @@ const formSchema = z.object({
 });
 
 const PricingSection = () => {
-  const [billingInterval, setBillingInterval] = useState("yearly");
+  const [billingInterval, setBillingInterval] = useState("monthly");
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -193,11 +192,11 @@ const PricingSection = () => {
               }}
               className="bg-white border rounded-md p-1"
             >
-              <ToggleGroupItem value="yearly" aria-label="Yearly billing">
-                Yearly <span className="text-xs font-medium ml-1 text-[#5F42FF]">(1 month free)</span>
-              </ToggleGroupItem>
               <ToggleGroupItem value="monthly" aria-label="Monthly billing">
                 Monthly
+              </ToggleGroupItem>
+              <ToggleGroupItem value="yearly" aria-label="Yearly billing">
+                Yearly <span className="text-xs font-medium ml-1 text-[#5F42FF]">(1 month free)</span>
               </ToggleGroupItem>
             </ToggleGroup>
           </div>

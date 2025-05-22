@@ -417,42 +417,54 @@ export type Database = {
       }
       owl_tasks: {
         Row: {
-          created_at: string | null
+          action_log: Json | null
+          created_at: string
+          created_at_in_owl: string | null
+          error_details: string | null
           error_message: string | null
+          example_module: string | null
           id: string
           input_params: Json | null
           owl_service_task_id: string | null
-          progress: number | null
           result: Json | null
-          status: string | null
+          status: string
+          task_prompt_for_owl: string | null
           task_type: string
-          updated_at: string | null
+          updated_at: string
           user_id: string | null
         }
         Insert: {
-          created_at?: string | null
+          action_log?: Json | null
+          created_at?: string
+          created_at_in_owl?: string | null
+          error_details?: string | null
           error_message?: string | null
+          example_module?: string | null
           id?: string
           input_params?: Json | null
           owl_service_task_id?: string | null
-          progress?: number | null
           result?: Json | null
-          status?: string | null
+          status?: string
+          task_prompt_for_owl?: string | null
           task_type: string
-          updated_at?: string | null
+          updated_at?: string
           user_id?: string | null
         }
         Update: {
-          created_at?: string | null
+          action_log?: Json | null
+          created_at?: string
+          created_at_in_owl?: string | null
+          error_details?: string | null
           error_message?: string | null
+          example_module?: string | null
           id?: string
           input_params?: Json | null
           owl_service_task_id?: string | null
-          progress?: number | null
           result?: Json | null
-          status?: string | null
+          status?: string
+          task_prompt_for_owl?: string | null
           task_type?: string
-          updated_at?: string | null
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: []
